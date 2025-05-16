@@ -1,0 +1,60 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "InventoryComponent.generated.h"
+
+class UItemBase;
+
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+class MMORPG_API UInventoryComponent : public UActorComponent
+{
+	GENERATED_BODY()
+
+public:	
+	// Sets default values for this component's properties (constructor)
+	UInventoryComponent();
+
+	// Proprietate pentru inventory
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TArray<UItemBase*> Items; // Simplu array de stringuri pentru moment
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	bool AddItem(UItemBase* NewItem);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	bool RemoveItem(FName ItemID, int32 Quantity = 1);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	UItemBase* GetItem(FName ItemID) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	bool HasItem(FName ItemID, int32 Quantity = 1) const;
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_AddItem(UItemBase* NewItem);
+	void Server_AddItem_Implementation(UItemBase* NewItem);
+	bool Server_AddItem_Validate(UItemBase* NewItem) { return true; }
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void DropItem(FName ItemID, int32 Quantity = 1);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_DropItem(FName ItemID, int32 Quantity);
+	void Server_DropItem_Implementation(FName ItemID, int32 Quantity);
+	bool Server_DropItem_Validate(FName ItemID, int32 Quantity) { return true; }
+
+	// Called every frame
+	//virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+
+protected:
+	// Called when the game starts
+	virtual void BeginPlay() override;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+
+		
+	
+};
