@@ -29,6 +29,8 @@ public:
 	UItemTooltip* Tooltip;
 
 	void SetItemData(UItemBase* NewItem);
+	virtual void NativeConstruct() override;
+
 
 protected:
 	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;

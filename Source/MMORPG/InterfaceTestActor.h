@@ -30,6 +30,9 @@ protected:
 	UPROPERTY(EditInstanceOnly, Category = "Test Actor")
 	FInteractableData InstanceInteractableData;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+	UDataTable* ItemDatabase;
+
 	// added for testv2 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup")
 	FName ItemID;

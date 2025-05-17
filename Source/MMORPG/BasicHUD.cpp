@@ -30,7 +30,13 @@ void UBasicHUD::ToggleInventory()
 	if (!InventoryPanel)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("InventoryPanel is null!"));
-		return;
+		UE_LOG(LogTemp, Warning, TEXT("[BasicHUD] Cream instanta de WB_InventoryPanel!"));
+		InventoryPanel = CreateWidget<UInventoryPanel>(GetWorld(), UInventoryPanel::StaticClass());
+		InventoryPanel->AddToViewport();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[BasicHUD] WB_InventoryPanel deja exista, doar toggle!"));
 	}
 
 	// switch between visible and collapsed
@@ -47,7 +53,7 @@ void UBasicHUD::ToggleInventory()
 		if (Character && Character->GetInventoryComponent())
 		{
 			// Legam delegate-ul pentru a asculta modificarile de inventory
-			BindInventoryToUI(Character->GetInventoryComponent());
+			InventoryPanel->BindToInventory(Character->GetInventoryComponent());
 
 			// Populam grila de iteme
 			InventoryPanel->PopulateInventory();

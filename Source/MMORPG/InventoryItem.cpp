@@ -9,6 +9,23 @@
 #include "Kismet/GameplayStatics.h"
 
 
+void UInventoryItem::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	// Verificam daca referintele sunt corecte
+	if (!ItemIcon)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[InventoryItem] ItemIcon nu este setat in Blueprint!"));
+	}
+
+	if (!ItemQuantity)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[InventoryItem] ItemQuantity nu este setat in Blueprint!"));
+	}
+}
+
+
 void UInventoryItem::SetItemData(UItemBase* NewItem)
 {
 	if (!NewItem)
@@ -23,14 +40,23 @@ void UInventoryItem::SetItemData(UItemBase* NewItem)
 		return;
 	}
 
-
-
 	ItemData = NewItem;
 
 	if (ItemData)
 	{
 		// Setam iconita si cantitatea
-		ItemIcon->SetBrushFromTexture(ItemData->AssetData.Icon);
+	
+		if (ItemData->AssetData.Icon)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[InventoryItem] Setam icon-ul pentru %s!"), *ItemData->ItemID.ToString());
+			ItemIcon->SetBrushFromTexture(ItemData->AssetData.Icon);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("[InventoryItem] Icon-ul pentru %s este NULL!"), *ItemData->ItemID.ToString());
+			ItemIcon->SetVisibility(ESlateVisibility::Collapsed);
+		}
+
 		ItemQuantity->SetText(FText::AsNumber(ItemData->Quantity));
 		ItemQuantity->SetVisibility(ItemData->Quantity > 1 ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 	}

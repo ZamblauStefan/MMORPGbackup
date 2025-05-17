@@ -32,12 +32,16 @@ void UInventoryPanel::PopulateInventory()
 	{
 		if (Item)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Populam gridul cu iteme"));
+
 			UInventoryItem* InventoryItem = CreateWidget<UInventoryItem>(this, UInventoryItem::StaticClass());
 			if (InventoryItem)
 			{
 				InventoryItem->SetItemData(Item);
 
 				UUniformGridSlot* GridSlot = GridPanel->AddChildToUniformGrid(InventoryItem, Row, Col);
+				GridSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
+				GridSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
 
 				Col++;
 				if (Col >= 5)
@@ -56,17 +60,26 @@ void UInventoryPanel::BindToInventory(UInventoryComponent* InventoryComponent)
 	if (InventoryComponent)
 	{
 		LinkedInventory = InventoryComponent;
-		InventoryComponent->OnInventoryUpdated.AddDynamic(this, &UInventoryPanel::PopulateInventory);
+		bool bIsAlreadyBound = false;
 
-		// Verificare daca functia se leaga corect
-		if (!InventoryComponent->OnInventoryUpdated.IsBound())
+		// Iteram prin delegate-uri sa vedem daca este legat deja
+		for (const auto& DelegateInstance : InventoryComponent->OnInventoryUpdated.GetAllObjects())
+		{
+			if (DelegateInstance == this)
+			{
+				bIsAlreadyBound = true;
+				break;
+			}
+		}
+
+		if (!bIsAlreadyBound)
 		{
 			InventoryComponent->OnInventoryUpdated.AddDynamic(this, &UInventoryPanel::PopulateInventory);
 			UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Delegate-ul pentru OnInventoryUpdated a fost legat!"));
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Delegate-ul era deja legat!"));
+			UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Delegate-ul era deja legat, nu mai legam din nou!"));
 		}
 	}
 	else

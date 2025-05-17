@@ -11,11 +11,11 @@ AInterfaceTestActor::AInterfaceTestActor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
-
 	SetRootComponent(Mesh);
 
+	ItemID = "test_001";
+	Quantity = 1;
 }
 
 // Called when the game starts or when spawned
@@ -78,6 +78,37 @@ void AInterfaceTestActor::Interact(AThirdPersonMPCharacter* Character)
 				{
 					NewItem->ItemID = ItemID;
 					NewItem->Quantity = Quantity;
+
+					if (ItemDatabase)
+					{
+						static const FString ContextString(TEXT("Item Data Context"));
+						FItemData* ItemData = ItemDatabase->FindRow<FItemData>(ItemID, ContextString);
+
+						if (ItemData)
+						{
+							// asignare proprietati/atribute item creat in inventory cu date din baza de date
+							UE_LOG(LogTemp, Warning, TEXT("[InterfaceTestActor] Datele au fost gasite pentru %s"), *ItemID.ToString());
+							NewItem->OwningInventory = Character->GetInventoryComponent();
+							NewItem->ItemType = ItemData->ItemType;
+							NewItem->ItemQuality = ItemData->ItemQuality;
+							NewItem->ItemStatistics = ItemData->ItemStatistics;
+							NewItem->TextData = ItemData->TextData;
+							NewItem->NumericData = ItemData->NumericData;
+							NewItem->AssetData = ItemData->AssetData;
+							NewItem->LevelRequirement = ItemData->LevelRequirement;
+							NewItem->Tags = ItemData->Tags;
+							NewItem->SpawnableActorClass = ItemData->SpawnableActorClass;
+							NewItem->MaxDurability = ItemData->MaxDurability;
+							NewItem->Cooldown = ItemData->Cooldown;
+
+						}
+						else
+						{
+							UE_LOG(LogTemp, Error, TEXT("[InterfaceTestActor] Nu am gasit date pentru %s in DataTable!"), *ItemID.ToString());
+						}
+
+					}
+
 
 					// Adaugam in inventar si verificam daca a functionat
 					if (Character->GetInventoryComponent()->AddItem(NewItem))
