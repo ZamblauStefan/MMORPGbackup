@@ -70,7 +70,7 @@ public:
 	virtual void EndFocus();
 	virtual void BeginInteract();
 	virtual void EndInteract();
-	virtual void Interact(AThirdPersonMPCharacter* Character);
+	virtual void Interact(AThirdPersonMPCharacter* Character) = 0;
 
 	FInteractableData InteractableData;
 

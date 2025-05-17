@@ -173,17 +173,17 @@ protected:
 	UFUNCTION()
 	void Interact();
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_PickupItem(AItemPickup* ItemPickup);
-	void Server_PickupItem_Implementation(AItemPickup* ItemPickup);
-	bool Server_PickupItem_Validate(AItemPickup* ItemPickup) { return true; }
-
-
 	virtual void Tick(float DeltaSeconds) override;
 
 public:	
 
 	FORCEINLINE bool IsInteracting() const { return GetWorldTimerManager().IsTimerActive(TimerHandle_Interaction); };
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_PickupItem(AItemPickup* ItemPickup);
+	void Server_PickupItem_Implementation(AItemPickup* ItemPickup);
+	bool Server_PickupItem_Validate(AItemPickup* ItemPickup) { return true; }
+
 
 	// interaction
 	//=====================

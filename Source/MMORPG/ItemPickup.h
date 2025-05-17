@@ -4,18 +4,27 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "InteractionInterface.h"
 #include "ItemPickup.generated.h"
 
 class AThirdPersonMPCharacter;
 
 UCLASS()
-class MMORPG_API AItemPickup : public AActor
+class MMORPG_API AItemPickup : public AActor, public IInteractionInterface
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
 	AItemPickup();
+
+	UPROPERTY(ReplicatedUsing = OnRep_ItemData)
+	FName ItemID;
+	UPROPERTY(ReplicatedUsing = OnRep_ItemData)
+	int32 Quantity;
+
+	UFUNCTION(BlueprintCallable, Category = "Pickup")
+	virtual void Interact(AThirdPersonMPCharacter* InteractingCharacter) override;
 
 	UFUNCTION()
 	void SetItemData(FName NewItemID, int32 NewQuantity);
@@ -25,18 +34,6 @@ public:
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
-	UPROPERTY(ReplicatedUsing = OnRep_ItemData)
-	FName ItemID;
-
-	UPROPERTY(ReplicatedUsing = OnRep_ItemData)
-	int32 Quantity;
-
-	UFUNCTION(BlueprintCallable, Category = "Pickup")
-	void OnInteract(AThirdPersonMPCharacter* InteractingCharacter);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_HandlePickup(AThirdPersonMPCharacter* InteractingCharacter);
-	void Server_HandlePickup_Implementation(AThirdPersonMPCharacter* InteractingCharacter);
 	bool Server_HandlePickup_Validate(AThirdPersonMPCharacter* InteractingCharacter) { return true; }
 
 protected:

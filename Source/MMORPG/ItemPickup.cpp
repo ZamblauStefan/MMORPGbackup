@@ -13,6 +13,7 @@ AItemPickup::AItemPickup()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	SetReplicates(true);
 
 }
 
@@ -38,49 +39,13 @@ void AItemPickup::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(AItemPickup, Quantity);
 }
 
-void AItemPickup::OnInteract(AThirdPersonMPCharacter* InteractingCharacter)
-{
-	if (HasAuthority())
-	{
-		Server_HandlePickup(InteractingCharacter);
-	}
-	else
-	{
-		Server_HandlePickup(InteractingCharacter);
-	}
-}
-
-void AItemPickup::Server_HandlePickup_Implementation(AThirdPersonMPCharacter* InteractingCharacter)
+void AItemPickup::Interact(AThirdPersonMPCharacter* InteractingCharacter)
 {
 	if (InteractingCharacter)
 	{
-		UInventoryComponent* Inventory = InteractingCharacter->GetInventoryComponent();
-		if (Inventory)
-		{
-			// Cream o instanta noua de UItemBase si setam datele
-			UItemBase* NewItem = NewObject<UItemBase>(UItemBase::StaticClass());
-			if (NewItem)
-			{
-				NewItem->ItemID = ItemID;
-				NewItem->Quantity = Quantity;
-
-				// adaugam item-ul in inventarul jucatorului
-				if (Inventory->AddItem(NewItem))
-				{
-					UE_LOG(LogTemp, Warning, TEXT("%s a fost adaugat in inventar!"), *ItemID.ToString());
-
-					// Daca s-a adaugat cu succes, distrugem obiectul din lume
-					Destroy();
-				}
-				else
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Nu s-a putut adauga %s in inventar."), *ItemID.ToString());
-				}
-			}
-		}
+		InteractingCharacter->Server_PickupItem(this);
 	}
 }
-
 
 
 

@@ -376,14 +376,19 @@ void AThirdPersonMPCharacter::Interact()
 
 	if (IsValid(InteractionData.CurrentInteractable))
 	{
-		// Verificam daca este de tip `AItemPickup`
-		AItemPickup* ItemPickup = Cast<AItemPickup>(InteractionData.CurrentInteractable);
-
-		if (ItemPickup)
+		IInteractionInterface* Interactable = Cast<IInteractionInterface>(InteractionData.CurrentInteractable);
+		if (Interactable)
 		{
-			// Cerem serverului sa faca pickup
-			Server_PickupItem(ItemPickup);
+		
+			UE_LOG(LogTemp, Warning, TEXT("Interactiune detectata cu obiectul!"));
+			Interactable->Interact(this);
+			
 		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Obiectul nu implementeaza interfaaa de interactiune!"));
+		}
+		
 	}
 
 
