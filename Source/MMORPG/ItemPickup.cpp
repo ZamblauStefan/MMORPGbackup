@@ -41,10 +41,26 @@ void AItemPickup::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 void AItemPickup::Interact(AThirdPersonMPCharacter* InteractingCharacter)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[ItemPickup] Am ajuns in Interact cu itemul %s!"), *ItemID.ToString());
+
 	if (InteractingCharacter)
 	{
 		InteractingCharacter->Server_PickupItem(this);
+
+		if (InteractingCharacter->HasAuthority())
+		{
+			InteractingCharacter->Server_PickupItem(this);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[ItemPickup] Nu am authority pe client, nu pot trimite catre server!"));
+		}
 	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ItemPickup] Character este null!"));
+	}
+
 }
 
 

@@ -23,8 +23,11 @@ public:
 	UPROPERTY()
 	UInventoryComponent* LinkedInventory;
 
+	UFUNCTION()
 	void PopulateInventory();
 	void BindToInventory(UInventoryComponent* InventoryComponent);
+
+	void NativeDestruct();
 
 
 protected:

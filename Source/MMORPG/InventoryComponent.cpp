@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "InventoryComponent.h"
 #include "ItemBase.h"
@@ -20,16 +20,32 @@ UInventoryComponent::UInventoryComponent()
 
 bool UInventoryComponent::AddItem(UItemBase* NewItem)
 {
-	if (!NewItem) return false;
+	if (!NewItem)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[InventoryComponent] Item este NULL!"));
+		return false;
+	}
+
+	if (!GetOwner())
+	{
+		UE_LOG(LogTemp, Error, TEXT("[InventoryComponent] GetOwner() este NULL!"));
+		return false;
+	}
 
 	if (GetOwnerRole() == ROLE_Authority)
 	{
 		Items.Add(NewItem);
-
+		UE_LOG(LogTemp, Warning, TEXT("[InventoryComponent] Item %s a fost adaugat in lista de iteme!"), *NewItem->ItemID.ToString());
 		// Trigger pentru delegate-ul pentru UI
-		OnInventoryUpdated.Broadcast();
+		if (OnInventoryUpdated.IsBound())
+		{
+			OnInventoryUpdated.Broadcast();
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("[InventoryComponent] Delegate-ul OnInventoryUpdated NU este legat!"));
+		}
 
-		UE_LOG(LogTemp, Warning, TEXT("Item %s a fost adaugat in inventory."), *NewItem->ItemID.ToString());
 		return true;
 	}
 	else

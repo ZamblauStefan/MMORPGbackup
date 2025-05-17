@@ -11,6 +11,20 @@
 
 void UInventoryItem::SetItemData(UItemBase* NewItem)
 {
+	if (!NewItem)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[InventoryItem] NewItem este NULL!"));
+		return;
+	}
+
+	if (!NewItem->AssetData.Icon)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[InventoryItem] Icon-ul pentru item este NULL!"));
+		return;
+	}
+
+
+
 	ItemData = NewItem;
 
 	if (ItemData)

@@ -16,7 +16,13 @@ void UInventoryPanel::NativeConstruct()
 
 void UInventoryPanel::PopulateInventory()
 {
-	if (!GridPanel || !LinkedInventory) return;
+	if (!IsValid(GridPanel) || !IsValid(LinkedInventory))
+	{
+		UE_LOG(LogTemp, Error, TEXT("[InventoryPanel] GridPanel sau LinkedInventory sunt NULL!"));
+		return;
+	}
+
+
 
 	GridPanel->ClearChildren();
 	int Row = 0;
@@ -51,8 +57,37 @@ void UInventoryPanel::BindToInventory(UInventoryComponent* InventoryComponent)
 	{
 		LinkedInventory = InventoryComponent;
 		InventoryComponent->OnInventoryUpdated.AddDynamic(this, &UInventoryPanel::PopulateInventory);
+
+		// Verificare daca functia se leaga corect
+		if (!InventoryComponent->OnInventoryUpdated.IsBound())
+		{
+			InventoryComponent->OnInventoryUpdated.AddDynamic(this, &UInventoryPanel::PopulateInventory);
+			UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Delegate-ul pentru OnInventoryUpdated a fost legat!"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Delegate-ul era deja legat!"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[InventoryPanel] InventoryComponent este NULL la bind!"));
+	}
+
+}
+
+
+void UInventoryPanel::NativeDestruct()
+{
+	Super::NativeDestruct();
+
+	if (LinkedInventory && LinkedInventory->OnInventoryUpdated.IsBound())
+	{
+		LinkedInventory->OnInventoryUpdated.RemoveDynamic(this, &UInventoryPanel::PopulateInventory);
+		UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Delegate-ul a fost sters la destruct!"));
 	}
 }
+
 
 
 

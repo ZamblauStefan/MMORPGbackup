@@ -55,6 +55,10 @@ AThirdPersonMPCharacter::AThirdPersonMPCharacter()
 	// fortam replicare actor
 	bReplicates = true;
 
+
+	// initializare inventory component
+	InventoryComp = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
+
 	// setam distanta maxima (in unitati UE) la care se va replica actorul
 	const float CullRadius = 2000.f;
 	SetNetCullDistanceSquared(FMath::Square(CullRadius));
@@ -430,6 +434,9 @@ void AThirdPersonMPCharacter::Server_PickupItem_Implementation(AItemPickup* Item
 {
 	if (ItemPickup && InventoryComp)
 	{
+
+		UE_LOG(LogTemp, Warning, TEXT("[Server_PickupItem] Am ajuns pe server, item: %s"), *ItemPickup->ItemID.ToString());
+
 		// Cream un obiect nou pentru inventory
 		UItemBase* NewItem = NewObject<UItemBase>(UItemBase::StaticClass());
 
@@ -445,8 +452,9 @@ void AThirdPersonMPCharacter::Server_PickupItem_Implementation(AItemPickup* Item
 			if (bAdded)
 			{
 				// Distrugem actorul din lume
-				ItemPickup->Destroy();
 				UE_LOG(LogTemp, Warning, TEXT("Item %s a fost adaugat in inventory!"), *NewItem->ItemID.ToString());
+				ItemPickup->Destroy();
+			
 			}
 			else
 			{
@@ -2151,7 +2159,14 @@ void AThirdPersonMPCharacter::BeginPlay()
 		); // movement stamina regen
 	}
 
-	
+	if (InventoryComp)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ThirdPersonMPCharacter] InventoryComponent este valid!"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[ThirdPersonMPCharacter] InventoryComponent este NULL!"));
+	}
 }
 
 /*

@@ -23,6 +23,14 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_ItemData)
 	int32 Quantity;
 
+	// Data pentru interactiune
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup")
+	//FInteractableData InstanceInteractableData;
+
+	// Referinta catre tabel
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup")
+	//UDataTable* ItemTable;
+
 	UFUNCTION(BlueprintCallable, Category = "Pickup")
 	virtual void Interact(AThirdPersonMPCharacter* InteractingCharacter) override;
 

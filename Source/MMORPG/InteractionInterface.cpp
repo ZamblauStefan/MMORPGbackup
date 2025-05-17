@@ -24,4 +24,6 @@ void IInteractionInterface::EndInteract()
 
 void IInteractionInterface::Interact(AThirdPersonMPCharacter* Character)
 {
+
+
 }

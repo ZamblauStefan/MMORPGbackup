@@ -30,6 +30,13 @@ protected:
 	UPROPERTY(EditInstanceOnly, Category = "Test Actor")
 	FInteractableData InstanceInteractableData;
 
+	// added for testv2 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup")
+	FName ItemID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup")
+	int32 Quantity;
+
 
 public:	
 	// Called every frame
