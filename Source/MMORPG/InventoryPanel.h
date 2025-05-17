@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -10,9 +8,7 @@ class UUniformGridPanel;
 class UInventoryComponent;
 class UInventoryItem;
 
-/**
- * 
- */
+
 UCLASS()
 class MMORPG_API UInventoryPanel : public UUserWidget
 {
@@ -22,8 +18,13 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	UUniformGridPanel* GridPanel;
+	
+	// referinta catre inventory
+	UPROPERTY()
+	UInventoryComponent* LinkedInventory;
 
-	void PopulateInventory(UInventoryComponent* InventoryComponent);
+	void PopulateInventory();
+	void BindToInventory(UInventoryComponent* InventoryComponent);
 
 
 protected:

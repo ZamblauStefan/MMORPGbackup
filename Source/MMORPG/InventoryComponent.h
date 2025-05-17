@@ -4,6 +4,8 @@
 #include "Components/ActorComponent.h"
 #include "InventoryComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryUpdated);
+
 class UItemBase;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -17,7 +19,11 @@ public:
 
 	// Proprietate pentru inventory
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
-	TArray<UItemBase*> Items; // Simplu array de stringuri pentru moment
+	TArray<UItemBase*> Items; 
+
+	// Delegate pentru actualizarea inventarului
+	UPROPERTY(BlueprintAssignable, Category = "Inventory")
+	FOnInventoryUpdated OnInventoryUpdated;
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool AddItem(UItemBase* NewItem);

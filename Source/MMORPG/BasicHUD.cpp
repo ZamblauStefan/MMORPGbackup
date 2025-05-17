@@ -1,8 +1,12 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "BasicHUD.h"
 #include "Components/Widget.h"
+#include "InventoryPanel.h"
+#include "ThirdPersonMPCharacter.h"
+#include "InventoryComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 void UBasicHUD::ToggleCharacterDetails()
 {
@@ -23,9 +27,9 @@ void UBasicHUD::ToggleCharacterDetails()
 
 void UBasicHUD::ToggleInventory()
 {
-	if (!CharacterDetailsPanel)
+	if (!InventoryPanel)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("CharacterDetailsPanel is null!"));
+		UE_LOG(LogTemp, Warning, TEXT("InventoryPanel is null!"));
 		return;
 	}
 
@@ -35,6 +39,31 @@ void UBasicHUD::ToggleInventory()
 		bIsVisible ? ESlateVisibility::Collapsed
 		: ESlateVisibility::Visible
 	);
+
+	// Daca deschidem inventory, populam cu iteme
+	if (!bIsVisible)
+	{
+		AThirdPersonMPCharacter* Character = Cast<AThirdPersonMPCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+		if (Character && Character->GetInventoryComponent())
+		{
+			// Legam delegate-ul pentru a asculta modificarile de inventory
+			BindInventoryToUI(Character->GetInventoryComponent());
+
+			// Populam grila de iteme
+			InventoryPanel->PopulateInventory();
+		}
+	}
 	
 }
+
+void UBasicHUD::BindInventoryToUI(UInventoryComponent* InventoryComponent)
+{
+	if (InventoryComponent)
+	{
+		// Facem legatura dintre inventory si panel
+		InventoryPanel->BindToInventory(InventoryComponent);
+	}
+}
+
+
 

@@ -24,10 +24,16 @@ bool UInventoryComponent::AddItem(UItemBase* NewItem)
 	if (GetOwnerRole() == ROLE_Authority)
 	{
 		Items.Add(NewItem);
+
+		// Trigger pentru delegate-ul pentru UI
+		OnInventoryUpdated.Broadcast();
+
+		UE_LOG(LogTemp, Warning, TEXT("Item %s a fost adaugat in inventory."), *NewItem->ItemID.ToString());
 		return true;
 	}
 	else
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Item-ul %s nu s-a putut adauga (nu avem Authority)."), *NewItem->ItemID.ToString());
 		Server_AddItem(NewItem);
 	}
 	return false;

@@ -14,15 +14,15 @@ void UInventoryPanel::NativeConstruct()
 }
 
 
-void UInventoryPanel::PopulateInventory(UInventoryComponent* InventoryComponent)
+void UInventoryPanel::PopulateInventory()
 {
-	if (!GridPanel) return;
+	if (!GridPanel || !LinkedInventory) return;
 
 	GridPanel->ClearChildren();
 	int Row = 0;
 	int Col = 0;
 
-	for (UItemBase* Item : InventoryComponent->Items)
+	for (UItemBase* Item : LinkedInventory->Items)
 	{
 		if (Item)
 		{
@@ -45,6 +45,14 @@ void UInventoryPanel::PopulateInventory(UInventoryComponent* InventoryComponent)
 }
 
 
+void UInventoryPanel::BindToInventory(UInventoryComponent* InventoryComponent)
+{
+	if (InventoryComponent)
+	{
+		LinkedInventory = InventoryComponent;
+		InventoryComponent->OnInventoryUpdated.AddDynamic(this, &UInventoryPanel::PopulateInventory);
+	}
+}
 
 
 

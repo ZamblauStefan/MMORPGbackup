@@ -18,6 +18,7 @@
 #include "MyPlayerController.h"
 #include "MainHUD.h"
 #include "ItemBase.h"
+#include "ItemPickup.h"
 
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -372,7 +373,22 @@ void AThirdPersonMPCharacter::Interact()
 {
 	GetWorldTimerManager().ClearTimer(TimerHandle_Interaction);
 
-	
+
+	if (IsValid(InteractionData.CurrentInteractable))
+	{
+		// Verificam daca este de tip `AItemPickup`
+		AItemPickup* ItemPickup = Cast<AItemPickup>(InteractionData.CurrentInteractable);
+
+		if (ItemPickup)
+		{
+			// Cerem serverului sa faca pickup
+			Server_PickupItem(ItemPickup);
+		}
+	}
+
+
+
+	/*	
 	if (IsValid(TargetInteractable.GetObject()))
 	{
 		// se verifica daca este un obiect de tip pickup
@@ -382,6 +398,7 @@ void AThirdPersonMPCharacter::Interact()
 			FInteractableData InteractableData = TargetInteractable->InteractableData;
 			if (InteractableData.InteractableType == EInteractableType::Pickup)
 			{
+		
 				// instantiere nou item de tipul obiectului din lume
 				UItemBase* NewItem = NewObject<UItemBase>(UItemBase::StaticClass());
 				NewItem->ItemID = FName(*InteractableData.Name.ToString());
@@ -398,11 +415,46 @@ void AThirdPersonMPCharacter::Interact()
 				}
 			}
 		}
-
-
 		TargetInteractable->Interact(this);
 	}
+	*/
 }
+
+
+void AThirdPersonMPCharacter::Server_PickupItem_Implementation(AItemPickup* ItemPickup)
+{
+	if (ItemPickup && InventoryComp)
+	{
+		// Cream un obiect nou pentru inventory
+		UItemBase* NewItem = NewObject<UItemBase>(UItemBase::StaticClass());
+
+		if (NewItem)
+		{
+			// Setam datele obiectului din lume in instanta de item
+			NewItem->ItemID = ItemPickup->ItemID;
+			NewItem->Quantity = ItemPickup->Quantity;
+
+			// Incercam sa adaugam in inventory
+			bool bAdded = InventoryComp->AddItem(NewItem);
+
+			if (bAdded)
+			{
+				// Distrugem actorul din lume
+				ItemPickup->Destroy();
+				UE_LOG(LogTemp, Warning, TEXT("Item %s a fost adaugat in inventory!"), *NewItem->ItemID.ToString());
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Nu s-a putut adauga item-ul in inventory."));
+			}
+		}
+	}
+}
+
+
+
+
+
 
 void AThirdPersonMPCharacter::Tick(float DeltaSeconds)
 {

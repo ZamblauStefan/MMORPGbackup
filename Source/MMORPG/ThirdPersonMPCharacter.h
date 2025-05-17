@@ -23,6 +23,7 @@ class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
 class AMainHUD;
+class AItemPickup;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
@@ -165,9 +166,17 @@ protected:
 	void PerformInteractionCheck();
 	void FoundInteractable(AActor* NewInteractable);
 	void NoInteractableFound();
+	UFUNCTION()
 	void BeginInteract();
+	UFUNCTION()
 	void EndInteract();
+	UFUNCTION()
 	void Interact();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_PickupItem(AItemPickup* ItemPickup);
+	void Server_PickupItem_Implementation(AItemPickup* ItemPickup);
+	bool Server_PickupItem_Validate(AItemPickup* ItemPickup) { return true; }
 
 
 	virtual void Tick(float DeltaSeconds) override;

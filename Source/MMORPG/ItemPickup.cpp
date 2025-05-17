@@ -25,7 +25,9 @@ void AItemPickup::SetItemData(FName NewItemID, int32 NewQuantity)
 
 void AItemPickup::OnRep_ItemData()
 {
-	// aici se poate face update la UI sau modificari vizuale
+	// update la UI sau modificari vizuale
+	UE_LOG(LogTemp, Warning, TEXT("Item %s cu cantitatea %d a fost aruncat în lume!"), *ItemID.ToString(), Quantity);
+
 }
 
 void AItemPickup::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
