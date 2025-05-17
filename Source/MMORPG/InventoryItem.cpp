@@ -33,6 +33,31 @@ void UInventoryItem::SetItemData(UItemBase* NewItem)
 		UE_LOG(LogTemp, Error, TEXT("[InventoryItem] NewItem este NULL!"));
 		return;
 	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[InventoryItem] NewItem este valid: %s"), *NewItem->ItemID.ToString());
+	}
+
+	// Verificam referintele UI
+	if (!ItemIcon)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[InventoryItem] ItemIcon nu este setat în Blueprint!"));
+		return;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[InventoryItem] ItemIcon este valid!"));
+	}
+
+	if (!ItemQuantity)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[InventoryItem] ItemQuantity nu este setat în Blueprint!"));
+		return;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[InventoryItem] ItemQuantity este valid!"));
+	}
 
 	if (!NewItem->AssetData.Icon)
 	{

@@ -1,9 +1,8 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-
+﻿
 #include "InventoryPanel.h"
 #include "InventoryComponent.h"
 #include "InventoryItem.h"
+#include "ItemBase.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
 
@@ -28,11 +27,13 @@ void UInventoryPanel::PopulateInventory()
 	int Row = 0;
 	int Col = 0;
 
+	UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Populam gridul cu iteme."));
+
 	for (UItemBase* Item : LinkedInventory->Items)
 	{
 		if (Item)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Populam gridul cu iteme"));
+			UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Am gasit item: %s"), *Item->ItemID.ToString());
 
 			UInventoryItem* InventoryItem = CreateWidget<UInventoryItem>(this, UInventoryItem::StaticClass());
 			if (InventoryItem)

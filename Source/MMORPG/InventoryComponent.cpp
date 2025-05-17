@@ -36,9 +36,11 @@ bool UInventoryComponent::AddItem(UItemBase* NewItem)
 	{
 		Items.Add(NewItem);
 		UE_LOG(LogTemp, Warning, TEXT("[InventoryComponent] Item %s a fost adaugat in lista de iteme!"), *NewItem->ItemID.ToString());
+
 		// Trigger pentru delegate-ul pentru UI
 		if (OnInventoryUpdated.IsBound())
 		{
+			UE_LOG(LogTemp, Warning, TEXT("[InventoryComponent] Delegate-ul este legat! Facem broadcast!"));
 			OnInventoryUpdated.Broadcast();
 		}
 		else
