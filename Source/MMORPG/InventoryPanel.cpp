@@ -37,6 +37,17 @@ void UInventoryPanel::PopulateInventory()
 		{
 			UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Am gasit item: %s"), *Item->ItemID.ToString());
 
+			// verificare item.icon
+			if (Item->AssetData.Icon)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Icon setat pentru %s: %s"), *Item->ItemID.ToString(), *Item->AssetData.Icon->GetName());
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("[InventoryPanel] Icon LIPSESTE pentru %s"), *Item->ItemID.ToString());
+			}
+
+
 			UInventoryItem* InventoryItem = CreateWidget<UInventoryItem>(this, UInventoryItem::StaticClass());
 			if (InventoryItem)
 			{

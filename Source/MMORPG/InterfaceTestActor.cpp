@@ -72,7 +72,7 @@ void AInterfaceTestActor::Interact(AThirdPersonMPCharacter* Character)
 			if (Character->HasAuthority())
 			{
 				// Cream un nou item si il adaugam in inventar
-				UItemBase* NewItem = NewObject<UItemBase>(Character->GetInventoryComponent());
+				UItemBase* NewItem = NewObject<UItemBase>(this);
 
 				if (NewItem)
 				{

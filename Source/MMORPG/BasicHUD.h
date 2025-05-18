@@ -31,4 +31,6 @@ public:
 	// Functie pentru legarea delegate-ului
 	void BindInventoryToUI(UInventoryComponent* InventoryComponent);
 
+	void NativeConstruct();
+
 };

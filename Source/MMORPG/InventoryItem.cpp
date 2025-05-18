@@ -46,11 +46,33 @@ void UInventoryItem::SetItemData(UItemBase* NewItem)
 		UE_LOG(LogTemp, Warning, TEXT("[InventoryItem] NewItem este valid: %s"), *NewItem->ItemID.ToString());
 	}
 
-	// Verificam referintele UI
+
+	ItemData = NewItem;
+	// Verificam datele
+	if (!ItemData->AssetData.Icon)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[InventoryItem] NewItem are Icon!"));
+		return;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[InventoryItem]  NewItem NU are Icon!"));
+	}
+
+	if (!ItemData->Quantity)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[InventoryItem]  NewItem are Quantity!"));
+		return;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[InventoryItem] NewItem NU are Quantity valid!"));
+	}
+
+	// Verificam daca sunt valide referintele din Blueprint
 	if (!ItemIcon)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[InventoryItem] ItemIcon nu este setat în Blueprint!"));
-		return;
 	}
 	else
 	{
@@ -60,38 +82,28 @@ void UInventoryItem::SetItemData(UItemBase* NewItem)
 	if (!ItemQuantity)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[InventoryItem] ItemQuantity nu este setat în Blueprint!"));
-		return;
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[InventoryItem] ItemQuantity este valid!"));
 	}
 
-	if (!NewItem->AssetData.Icon)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[InventoryItem] Icon-ul pentru item este NULL!"));
-		return;
-	}
-
-	ItemData = NewItem;
-
 	if (ItemData)
 	{
-		// Setam iconita si cantitatea
-	
 		if (ItemData->AssetData.Icon)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("[InventoryItem] Setam icon-ul pentru %s!"), *ItemData->ItemID.ToString());
-			ItemIcon->SetBrushFromTexture(ItemData->AssetData.Icon);
+			UE_LOG(LogTemp, Warning, TEXT("[InventoryItem] Setam icon-ul pentru %s!"), *NewItem->ItemID.ToString());
+			ItemIcon->SetBrushFromTexture(NewItem->AssetData.Icon);
+			//ItemIcon->SetVisibility(ESlateVisibility::Visible);
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("[InventoryItem] Icon-ul pentru %s este NULL!"), *ItemData->ItemID.ToString());
+			UE_LOG(LogTemp, Error, TEXT("[InventoryItem] Icon-ul pentru %s este NULL!"), *NewItem->ItemID.ToString());
 			ItemIcon->SetVisibility(ESlateVisibility::Collapsed);
 		}
 
-		ItemQuantity->SetText(FText::AsNumber(ItemData->Quantity));
-		ItemQuantity->SetVisibility(ItemData->Quantity > 1 ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+		ItemQuantity->SetText(FText::AsNumber(NewItem->Quantity));
+		ItemQuantity->SetVisibility(NewItem->Quantity > 1 ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 	}
 }
 

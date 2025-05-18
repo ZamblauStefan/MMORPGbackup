@@ -72,4 +72,33 @@ void UBasicHUD::BindInventoryToUI(UInventoryComponent* InventoryComponent)
 }
 
 
+void UBasicHUD::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	UE_LOG(LogTemp, Warning, TEXT("[BasicHUD] NativeConstruct apelat!"));
+
+	APlayerController* PC = GetOwningPlayer();
+	if (PC)
+	{
+		AThirdPersonMPCharacter* Character = Cast<AThirdPersonMPCharacter>(PC->GetPawn());
+		if (Character && Character->GetInventoryComponent())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[BasicHUD] InventoryPanel detectat în NativeConstruct. Legăm delegate-ul."));
+
+			if (InventoryPanel)
+			{
+				InventoryPanel->BindToInventory(Character->GetInventoryComponent());
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("[BasicHUD] Character sau InventoryComp este NULL!"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[BasicHUD] PlayerController este NULL!"));
+	}
+}
 
