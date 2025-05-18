@@ -36,9 +36,9 @@ void UInventoryItem::NativeConstruct()
 
 void UInventoryItem::SetItemData(UItemBase* NewItem)
 {
-	if (!NewItem)
+	if (!IsValid(NewItem))
 	{
-		UE_LOG(LogTemp, Error, TEXT("[InventoryItem] NewItem este NULL!"));
+		UE_LOG(LogTemp, Error, TEXT("[InventoryItem] Attempted to set null item data!"));
 		return;
 	}
 	else
@@ -90,20 +90,21 @@ void UInventoryItem::SetItemData(UItemBase* NewItem)
 
 	if (ItemData)
 	{
+
 		if (ItemData->AssetData.Icon)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("[InventoryItem] Setam icon-ul pentru %s!"), *NewItem->ItemID.ToString());
-			ItemIcon->SetBrushFromTexture(NewItem->AssetData.Icon);
+			UE_LOG(LogTemp, Warning, TEXT("[InventoryItem] Setam icon-ul pentru %s!"), *ItemData->ItemID.ToString());
+			ItemIcon->SetBrushFromTexture(ItemData->AssetData.Icon);
 			//ItemIcon->SetVisibility(ESlateVisibility::Visible);
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("[InventoryItem] Icon-ul pentru %s este NULL!"), *NewItem->ItemID.ToString());
-			ItemIcon->SetVisibility(ESlateVisibility::Collapsed);
+			UE_LOG(LogTemp, Error, TEXT("[InventoryItem] Icon-ul pentru %s este NULL!"), *ItemData->ItemID.ToString());
+			//ItemIcon->SetVisibility(ESlateVisibility::Collapsed);
 		}
 
-		ItemQuantity->SetText(FText::AsNumber(NewItem->Quantity));
-		ItemQuantity->SetVisibility(NewItem->Quantity > 1 ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+		ItemQuantity->SetText(FText::AsNumber(ItemData->Quantity));
+		ItemQuantity->SetVisibility(ItemData->Quantity > 1 ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 	}
 }
 

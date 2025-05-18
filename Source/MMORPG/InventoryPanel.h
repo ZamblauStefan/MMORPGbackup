@@ -23,6 +23,9 @@ public:
 	UPROPERTY()
 	UInventoryComponent* LinkedInventory;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TSubclassOf<UInventoryItem> InventoryItemClass;
+
 	UFUNCTION()
 	void PopulateInventory();
 	void BindToInventory(UInventoryComponent* InventoryComponent);

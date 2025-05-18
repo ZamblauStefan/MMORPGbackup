@@ -15,57 +15,97 @@ void UInventoryPanel::NativeConstruct()
 
 void UInventoryPanel::PopulateInventory()
 {
-	if (!IsValid(GridPanel) || !IsValid(LinkedInventory))
+	if (!IsValid(GridPanel))
 	{
-		UE_LOG(LogTemp, Error, TEXT("[InventoryPanel] GridPanel sau LinkedInventory sunt NULL!"));
+		UE_LOG(LogTemp, Error, TEXT("[InventoryPanel] GridPanel este NULL!"));
+		return;
+	}
+
+	if (!IsValid(LinkedInventory))
+	{
+		UE_LOG(LogTemp, Error, TEXT("[InventoryPanel] LinkedInventory este NULL!"));
+		return;
+	}
+
+	GridPanel->ClearChildren();
+
+	// Daca nu avem iteme, iesim
+	if (LinkedInventory->ItemIDs.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Inventarul este gol."));
 		return;
 	}
 
 
-
-	GridPanel->ClearChildren();
 	int Row = 0;
 	int Col = 0;
 
-	UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Populam gridul cu iteme."));
+	const int32 MaxColumns = 5; // Magic number inlocuit cu constanta
 
-	for (FName ItemID : LinkedInventory->ItemIDs)
+	UE_LOG(LogTemp, Log, TEXT("[InventoryPanel] Populam gridul cu %d iteme."), LinkedInventory->ItemIDs.Num());
+
+
+	for (const FName& ItemID : LinkedInventory->ItemIDs)
 	{
-		UItemBase* Item = LinkedInventory->FindItemByID(ItemID);
 
-		if (Item)
+		if (ItemID.IsNone())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Am gasit item: %s"), *Item->ItemID.ToString());
+			UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] ItemID invalid (IsNone)"));
+			continue;
+		}
 
-			// verificare item.icon
-			if (Item->AssetData.Icon)
+		UItemBase* Item = LinkedInventory->FindItemByID(ItemID);
+		if (!IsValid(Item))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Itemul cu ID %s nu a fost gasit in inventar"), *ItemID.ToString());
+			continue;
+		}
+
+		UE_LOG(LogTemp, Verbose, TEXT("[InventoryPanel] Procesam item: %s"), *Item->ItemID.ToString());
+
+			// verificare item assetdata
+			if (!Item->AssetData.Icon)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Icon setat pentru %s: %s"), *Item->ItemID.ToString(), *Item->AssetData.Icon->GetName());
+				UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Icon lipseste pentru %s - trebuie adaugd efault"), *Item->ItemID.ToString());
+				// Item->AssetData.Icon = DefaultIcon;
 			}
-			else
+	
+
+
+			UInventoryItem* InventoryItem = CreateWidget<UInventoryItem>(this, InventoryItemClass ? InventoryItemClass.Get() : UInventoryItem::StaticClass());
+			if (!IsValid(InventoryItem))
 			{
-				UE_LOG(LogTemp, Error, TEXT("[InventoryPanel] Icon LIPSESTE pentru %s"), *Item->ItemID.ToString());
+
+				UE_LOG(LogTemp, Error, TEXT("[InventoryPanel] Nu s-a putut crea widgetul InventoryItem pentru %s"), *Item->ItemID.ToString());
+				continue;
+
 			}
 
-
-			UInventoryItem* InventoryItem = CreateWidget<UInventoryItem>(this, UInventoryItem::StaticClass());
-			if (InventoryItem)
-			{
+				// setare item data
 				InventoryItem->SetItemData(Item);
+				// adaugare in grid
+				if (UUniformGridSlot* GridSlot = GridPanel->AddChildToUniformGrid(InventoryItem, Row, Col))
+				{
+					GridSlot->SetHorizontalAlignment(HAlign_Fill);
+					GridSlot->SetVerticalAlignment(VAlign_Fill);
 
-				UUniformGridSlot* GridSlot = GridPanel->AddChildToUniformGrid(InventoryItem, Row, Col);
-				GridSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
-				GridSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("[InventoryPanel] Nu s-a putut adauga itemul %s in grid"), *Item->ItemID.ToString());
+				}
 
+				// actualizare positie in grid
 				Col++;
-				if (Col >= 5)
+				if (Col >= MaxColumns)
 				{
 					Col = 0;
 					Row++;
 				}
-			}
-		}
+		
 	}
+
+	UE_LOG(LogTemp, Log, TEXT("[InventoryPanel] Populare inventar finalizata."));
 }
 
 

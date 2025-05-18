@@ -84,7 +84,7 @@ void AInterfaceTestActor::Interact(AThirdPersonMPCharacter* Character)
 
 					if (ItemDatabase)
 					{
-						static const FString ContextString(TEXT("Item Data Context"));
+						static const FString ContextString(TEXT("[InterfaceTestActor] Item Data Context"));
 						FItemData* ItemData = ItemDatabase->FindRow<FItemData>(ItemID, ContextString);
 
 						if (ItemData)
