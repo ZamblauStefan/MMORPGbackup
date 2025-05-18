@@ -46,6 +46,7 @@ void UBasicHUD::ToggleInventory()
 		: ESlateVisibility::Visible
 	);
 
+	/*
 	// Daca deschidem inventory, populam cu iteme
 	if (!bIsVisible)
 	{
@@ -59,7 +60,7 @@ void UBasicHUD::ToggleInventory()
 			InventoryPanel->PopulateInventory();
 		}
 	}
-	
+	*/
 }
 
 void UBasicHUD::BindInventoryToUI(UInventoryComponent* InventoryComponent)
@@ -67,11 +68,12 @@ void UBasicHUD::BindInventoryToUI(UInventoryComponent* InventoryComponent)
 	if (InventoryComponent)
 	{
 		// Facem legatura dintre inventory si panel
-		InventoryPanel->BindToInventory(InventoryComponent);
+		//InventoryPanel->BindToInventory(InventoryComponent);
 	}
 }
 
 
+/*
 void UBasicHUD::NativeConstruct()
 {
 	Super::NativeConstruct();
@@ -101,4 +103,4 @@ void UBasicHUD::NativeConstruct()
 		UE_LOG(LogTemp, Error, TEXT("[BasicHUD] PlayerController este NULL!"));
 	}
 }
-
+*/

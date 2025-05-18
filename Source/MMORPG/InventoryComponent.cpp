@@ -20,6 +20,29 @@ UInventoryComponent::UInventoryComponent()
 	// ...
 }
 
+bool UInventoryComponent::AddItem(UItemBase* Item)
+{
+	if (!Item || Items.Num() >= MaxItems)
+		return false;
+
+	// Verifică dubluri daca e necesar
+	if (Item->NumericData.bIsStackable)
+	{
+		for (auto& ExistingItem : Items)
+		{
+			if (ExistingItem->ItemID == Item->ItemID)
+			{
+				ExistingItem->Quantity += Item->Quantity;
+				return true;
+			}
+		}
+	}
+
+	Items.Add(Item);
+	return true;
+}
+
+/*
 bool UInventoryComponent::AddItem(UItemBase* NewItem)
 {
 	if (!NewItem)
@@ -70,6 +93,7 @@ bool UInventoryComponent::AddItem(UItemBase* NewItem)
 	}
 	return false;
 }
+*/
 
 void UInventoryComponent::Server_AddItem_Implementation(UItemBase* NewItem)
 {

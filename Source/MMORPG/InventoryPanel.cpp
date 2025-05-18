@@ -2,11 +2,55 @@
 #include "InventoryPanel.h"
 #include "InventoryComponent.h"
 #include "InventoryItem.h"
+#include "InventoryItemWidget.h"
 #include "ItemBase.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
 
+void UInventoryPanel::InitializePanel(UInventoryComponent* InventoryComp)
+{
+	LinkedInventory = InventoryComp;
+	LinkedInventory->OnInventoryUpdated.AddDynamic(this, &UInventoryPanel::RefreshInventory);
+	RefreshInventory();
+}
 
+
+void UInventoryPanel::RefreshInventory()
+{
+	GridPanel->ClearChildren();
+
+	if (!LinkedInventory) return;
+
+	const int32 Columns = 5;
+	int32 Row = 0;
+	int32 Column = 0;
+
+	for (UItemBase* Item : LinkedInventory->GetItems())
+	{
+		if (!Item) continue;
+
+		UInventoryItemWidget* ItemWidget = CreateWidget<UInventoryItemWidget>(this, ItemWidgetClass);
+		if (ItemWidget)
+		{
+			ItemWidget->InitializeItem(Item);
+			if (UUniformGridSlot* GridSlot = GridPanel->AddChildToUniformGrid(ItemWidget, Row, Column))
+			{
+				GridSlot->SetHorizontalAlignment(HAlign_Fill);
+				GridSlot->SetVerticalAlignment(VAlign_Fill);
+			}
+
+			if (++Column >= Columns)
+			{
+				Column = 0;
+				Row++;
+			}
+		}
+	}
+}
+
+
+
+/*
 void UInventoryPanel::NativeConstruct()
 {
 	Super::NativeConstruct();
@@ -155,6 +199,6 @@ void UInventoryPanel::NativeDestruct()
 	}
 }
 
-
+*/
 
 

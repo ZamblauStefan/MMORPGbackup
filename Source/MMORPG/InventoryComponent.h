@@ -18,19 +18,24 @@ public:
 	UInventoryComponent();
 
 	// Proprietate pentru inventory
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
+	UPROPERTY( VisibleAnywhere, Category = "Inventory")
 	TArray<UItemBase*> Items; 
 
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
 	TArray<FName> ItemIDs;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
+	int32 MaxItems = 20;
 
 	// Delegate pentru actualizarea inventarului
 	UPROPERTY(BlueprintAssignable, Category = "Inventory")
 	FOnInventoryUpdated OnInventoryUpdated;
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	bool AddItem(UItemBase* NewItem);
+	bool AddItem(UItemBase* Item);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	TArray<UItemBase*> GetItems() const { return Items; }
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool RemoveItem(FName ItemID, int32 Quantity = 1);

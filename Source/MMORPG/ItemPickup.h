@@ -1,4 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -7,16 +6,22 @@
 #include "InteractionInterface.h"
 #include "ItemPickup.generated.h"
 
-class AThirdPersonMPCharacter;
+//class AThirdPersonMPCharacter;
+class UItemBase;
+class USphereComponent;
+
 
 UCLASS()
-class MMORPG_API AItemPickup : public AActor, public IInteractionInterface
+class MMORPG_API AItemPickup : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
 	AItemPickup();
+
+	UPROPERTY(EditAnywhere, Category = "Item")
+	TSubclassOf<UItemBase> ItemClass;
 
 	UPROPERTY(ReplicatedUsing = OnRep_ItemData)
 	FName ItemID;
@@ -31,8 +36,8 @@ public:
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup")
 	//UDataTable* ItemTable;
 
-	UFUNCTION(BlueprintCallable, Category = "Pickup")
-	virtual void Interact(AThirdPersonMPCharacter* InteractingCharacter) override;
+	//UFUNCTION(BlueprintCallable, Category = "Pickup")
+	//virtual void Interact(AThirdPersonMPCharacter* InteractingCharacter) override;
 
 	UFUNCTION()
 	void SetItemData(FName NewItemID, int32 NewQuantity);
@@ -44,11 +49,15 @@ public:
 
 	bool Server_HandlePickup_Validate(AThirdPersonMPCharacter* InteractingCharacter) { return true; }
 
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
 protected:
 
-	//////////////
+	UPROPERTY(VisibleAnywhere)
+	USphereComponent* CollisionSphere;
 
-protected:
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
