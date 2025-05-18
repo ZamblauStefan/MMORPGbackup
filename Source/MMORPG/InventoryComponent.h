@@ -21,7 +21,7 @@ public:
 	UPROPERTY( VisibleAnywhere, Category = "Inventory")
 	TArray<UItemBase*> Items; 
 
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
 	TArray<FName> ItemIDs;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
@@ -45,7 +45,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool HasItem(FName ItemID, int32 Quantity = 1) const;
-
+/*
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_AddItem(UItemBase* NewItem);
 	void Server_AddItem_Implementation(UItemBase* NewItem);
@@ -58,7 +58,7 @@ public:
 	void Server_DropItem(FName ItemID, int32 Quantity);
 	void Server_DropItem_Implementation(FName ItemID, int32 Quantity);
 	bool Server_DropItem_Validate(FName ItemID, int32 Quantity) { return true; }
-
+*/
 	UItemBase* FindItemByID(FName ItemID) const;
 
 
@@ -70,7 +70,7 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	//virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 
 		

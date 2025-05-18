@@ -24,13 +24,17 @@ AItemPickup::AItemPickup()
 
 void AItemPickup::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (auto* Inventory = OtherActor->FindComponentByClass<UInventoryComponent>())
+	if (HasAuthority() && !bIsPickedUp) // Doar serverul proceseaza pickup-ul
 	{
-		if (UItemBase* NewItem = NewObject<UItemBase>(this, ItemClass))
+		if (auto* Inventory = OtherActor->FindComponentByClass<UInventoryComponent>())
 		{
-			if (Inventory->AddItem(NewItem))
+			if (UItemBase* NewItem = NewObject<UItemBase>(this, ItemClass))
 			{
-				Destroy();
+				if (Inventory->AddItem(NewItem))
+				{
+					bIsPickedUp = true;
+					Destroy();
+				}
 			}
 		}
 	}
@@ -54,11 +58,16 @@ void AItemPickup::OnRep_ItemData()
 void AItemPickup::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AItemPickup, bIsPickedUp);
 
 	//DOREPLIFETIME(AItemPickup, ItemID);
 	//DOREPLIFETIME(AItemPickup, Quantity);
 }
 
+void AItemPickup::OnRep_IsPickedUp()
+{
+	if (bIsPickedUp) Destroy(); // Distruge actorul pe toti clientii
+}
 
 /*
 void AItemPickup::Interact(AThirdPersonMPCharacter* InteractingCharacter)

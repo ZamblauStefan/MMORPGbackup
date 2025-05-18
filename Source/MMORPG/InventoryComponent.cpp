@@ -93,13 +93,13 @@ bool UInventoryComponent::AddItem(UItemBase* NewItem)
 	}
 	return false;
 }
-*/
+
 
 void UInventoryComponent::Server_AddItem_Implementation(UItemBase* NewItem)
 {
 	AddItem(NewItem);
 }
-
+*/
 
 UItemBase* UInventoryComponent::GetItem(FName ItemID) const
 {
@@ -138,11 +138,13 @@ bool UInventoryComponent::HasItem(FName ItemID, int32 Quantity) const
 	return Item && Item->Quantity >= Quantity;
 }
 
+/*
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UInventoryComponent, Items);
 }
+
 
 // drop item from inventory
 void UInventoryComponent::DropItem(FName ItemID, int32 Quantity)
@@ -193,7 +195,7 @@ void UInventoryComponent::Server_DropItem_Implementation(FName ItemID, int32 Qua
 		}
 	}
 }
-
+*/
 
 UItemBase* UInventoryComponent::FindItemByID(FName ItemID) const
 {
