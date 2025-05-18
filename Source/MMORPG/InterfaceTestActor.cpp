@@ -72,12 +72,15 @@ void AInterfaceTestActor::Interact(AThirdPersonMPCharacter* Character)
 			if (Character->HasAuthority())
 			{
 				// Cream un nou item si il adaugam in inventar
-				UItemBase* NewItem = NewObject<UItemBase>(UItemBase::StaticClass());
+				UItemBase* NewItem = NewObject<UItemBase>(Character->GetInventoryComponent());
 
 				if (NewItem)
 				{
 					NewItem->ItemID = ItemID;
 					NewItem->Quantity = Quantity;
+
+					// Sincronizare manuala pe client
+					NewItem->Multicast_SyncItemData(ItemID, Quantity, NewItem->AssetData);
 
 					if (ItemDatabase)
 					{

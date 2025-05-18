@@ -29,8 +29,10 @@ void UInventoryPanel::PopulateInventory()
 
 	UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Populam gridul cu iteme."));
 
-	for (UItemBase* Item : LinkedInventory->Items)
+	for (FName ItemID : LinkedInventory->ItemIDs)
 	{
+		UItemBase* Item = LinkedInventory->FindItemByID(ItemID);
+
 		if (Item)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Am gasit item: %s"), *Item->ItemID.ToString());

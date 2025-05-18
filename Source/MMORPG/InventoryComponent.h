@@ -21,6 +21,10 @@ public:
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
 	TArray<UItemBase*> Items; 
 
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
+	TArray<FName> ItemIDs;
+
+
 	// Delegate pentru actualizarea inventarului
 	UPROPERTY(BlueprintAssignable, Category = "Inventory")
 	FOnInventoryUpdated OnInventoryUpdated;
@@ -49,6 +53,9 @@ public:
 	void Server_DropItem(FName ItemID, int32 Quantity);
 	void Server_DropItem_Implementation(FName ItemID, int32 Quantity);
 	bool Server_DropItem_Validate(FName ItemID, int32 Quantity) { return true; }
+
+	UItemBase* FindItemByID(FName ItemID) const;
+
 
 	// Called every frame
 	//virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;

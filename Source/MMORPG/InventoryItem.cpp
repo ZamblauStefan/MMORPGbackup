@@ -18,10 +18,18 @@ void UInventoryItem::NativeConstruct()
 	{
 		UE_LOG(LogTemp, Error, TEXT("[InventoryItem] ItemIcon nu este setat in Blueprint!"));
 	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[InventoryItem] ItemIcon a fost setat corect!"));
+	}
 
 	if (!ItemQuantity)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[InventoryItem] ItemQuantity nu este setat in Blueprint!"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[InventoryItem] ItemQuantity a fost setat corect!"));
 	}
 }
 

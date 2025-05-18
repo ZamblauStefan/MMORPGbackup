@@ -15,6 +15,8 @@ UInventoryComponent::UInventoryComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
 
+
+
 	// ...
 }
 
@@ -35,7 +37,18 @@ bool UInventoryComponent::AddItem(UItemBase* NewItem)
 	if (GetOwnerRole() == ROLE_Authority)
 	{
 		Items.Add(NewItem);
+		ItemIDs.Add(NewItem->ItemID);
+
+		NewItem->MarkPackageDirty();
+		NewItem->OnRep_ItemData();
 		UE_LOG(LogTemp, Warning, TEXT("[InventoryComponent] Item %s a fost adaugat in lista de iteme!"), *NewItem->ItemID.ToString());
+
+
+		// verificare lista iteme
+		for (UItemBase* Item : Items)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[InventoryComponent] Item in lista: %s, Cantitate: %d"), *Item->ItemID.ToString(), Item->Quantity);
+		}
 
 		// Trigger pentru delegate-ul pentru UI
 		if (OnInventoryUpdated.IsBound())
@@ -157,6 +170,21 @@ void UInventoryComponent::Server_DropItem_Implementation(FName ItemID, int32 Qua
 	}
 }
 
+
+UItemBase* UInventoryComponent::FindItemByID(FName ItemID) const
+{
+	for (UItemBase* Item : Items)
+	{
+		if (Item && Item->ItemID == ItemID)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[InventoryComponent] Am gasit item-ul %s in inventory!"), *ItemID.ToString());
+			return Item;
+		}
+	}
+
+	UE_LOG(LogTemp, Error, TEXT("[InventoryComponent] Nu am gasit item-ul %s in inventory!"), *ItemID.ToString());
+	return nullptr;
+}
 
 
 void UInventoryComponent::BeginPlay()

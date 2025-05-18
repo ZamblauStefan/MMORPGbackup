@@ -19,43 +19,44 @@ class MMORPG_API UItemBase : public UObject
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, Category = "Item")
+	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	int32 Quantity;
-	UPROPERTY(EditAnywhere, Category = "Item")
+	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	FName ItemID;
-	UPROPERTY(EditAnywhere, Category = "Item")
+	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	UInventoryComponent* OwningInventory;
-	UPROPERTY(EditAnywhere, Category = "Item")
+	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	EItemType ItemType;
-	UPROPERTY(EditAnywhere, Category = "Item")
+	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	EItemQuality ItemQuality;
-	UPROPERTY(EditAnywhere, Category = "Item")
+	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	FItemStatistics ItemStatistics;
-	UPROPERTY(EditAnywhere, Category = "Item")
+	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	FItemTextData TextData;
-	UPROPERTY(EditAnywhere, Category = "Item")
+	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	FItemNumericData NumericData;
-	UPROPERTY(EditAnywhere, Category = "Item")
+	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	FItemAssetData AssetData;
 
 	// requirements
-	UPROPERTY(EditAnywhere, Category = "Item")
+	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	int32 LevelRequirement = 0;
-	UPROPERTY(EditAnywhere, Category = "Item")
+	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	FGameplayTagContainer Tags;
-	UPROPERTY(EditAnywhere, Category = "Item")
+	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	TSubclassOf<AItemPickup> SpawnableActorClass;
 
 	// durability / cooldown
-	UPROPERTY(EditAnywhere, Category = "Item")
+	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	int32 MaxDurability;
-	UPROPERTY(EditAnywhere, Category = "Item")
+	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	float Cooldown;
 
 	// delegate pentru use
 	DECLARE_DELEGATE_OneParam(FOnUseItem, AActor* /* User */);
 	FOnUseItem OnUse;
 
+public:
 	UItemBase();
 
 	UFUNCTION(Category = "Item")
@@ -71,6 +72,16 @@ public:
 
 	virtual void Use(AThirdPersonMPCharacter* Character);
 
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+
+	UFUNCTION()
+	void OnRep_ItemData(); // Sincronizare client-server
+
+	// functii pentru sincronizare client-server
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_SyncItemData(FName NewItemID, int32 NewQuantity, FItemAssetData NewAssetData);
+
+	void SyncItemData(FName NewItemID, int32 NewQuantity, FItemAssetData NewAssetData);
 
 protected:
 

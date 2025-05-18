@@ -184,7 +184,6 @@ void AThirdPersonMPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 	}
 }
 
-
 void AThirdPersonMPCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
@@ -208,7 +207,6 @@ void AThirdPersonMPCharacter::Move(const FInputActionValue& Value)
 	}
 }
 
-
 void AThirdPersonMPCharacter::Look(const FInputActionValue& Value)
 {
 	// input is a Vector2D
@@ -221,7 +219,6 @@ void AThirdPersonMPCharacter::Look(const FInputActionValue& Value)
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
 }
-
 
 void AThirdPersonMPCharacter::ToggleCharacterDetails()
 {
@@ -238,7 +235,6 @@ void AThirdPersonMPCharacter::ToggleInventory()
 		PC->ToggleInventory();
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////
@@ -267,6 +263,11 @@ void AThirdPersonMPCharacter::PerformInteractionCheck()
 				if (TraceHit.GetActor() != InteractionData.CurrentInteractable)
 				{
 					FoundInteractable(TraceHit.GetActor());
+
+					// verificare ca am lovit un obiect ce implementeaza InteractionInterface cu TraceHit
+					AActor* HitActor = TraceHit.GetActor();
+					UE_LOG(LogTemp, Warning, TEXT("Interactable detectat: %s"), *HitActor->GetName());
+
 					return;
 				}
 
