@@ -21,7 +21,10 @@ class MMORPG_API UInventoryItemWidget : public UUserWidget
 	GENERATED_BODY()
 	
 public:
-    void InitializeItem(UItemBase* Item);
+ 
+    // Initializeaza widget-ul cu datele item-ului
+    UFUNCTION(BlueprintCallable)
+    void InitItem(UItemBase* Item);
 
 protected:
     UPROPERTY(meta = (BindWidget))
@@ -30,9 +33,9 @@ protected:
     UPROPERTY(meta = (BindWidget))
     UTextBlock* Quantity;
 
-private:
-    UPROPERTY()
-    UItemBase* ItemData;
+//private:
+    //UPROPERTY()
+   // UItemBase* ItemData;
 	
 	
 };

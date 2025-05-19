@@ -5,17 +5,29 @@
 #include "ItemBase.h"
 
 
-void UInventoryItemWidget::InitializeItem(UItemBase* Item)
+void UInventoryItemWidget::InitItem(UItemBase* Item)
 {
-    if (!Item) return;
+    if (!Item || !ItemIcon || !Quantity)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("InventoryItemWidget: Invalid item or UI elements!"));
+        return;
+    }
 
-    ItemData = Item;
-
-    if (Quantity)
-        Quantity->SetText(FText::AsNumber(Item->Quantity));
-
-    if (ItemIcon && Item->AssetData.Icon)
+    // Setam icon
+    if (Item->AssetData.Icon)
+    {
         ItemIcon->SetBrushFromTexture(Item->AssetData.Icon);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Item %s has no icon!"), *Item->ItemID.ToString());
+    }
+
+    //ItemData = Item;
+
+    // setam quantity
+    Quantity->SetText(FText::AsNumber(Item->Quantity));
+    Quantity->SetVisibility(Item->NumericData.bIsStackable ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 
 }
 

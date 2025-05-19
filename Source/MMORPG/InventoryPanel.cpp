@@ -7,39 +7,36 @@
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
 
-void UInventoryPanel::InitializePanel(UInventoryComponent* InventoryComp)
-{
-	LinkedInventory = InventoryComp;
-	LinkedInventory->OnInventoryUpdated.AddDynamic(this, &UInventoryPanel::RefreshInventory);
-	RefreshInventory();
-}
 
-
-void UInventoryPanel::RefreshInventory()
+void UInventoryPanel::RefreshInventory(UInventoryComponent* InventoryComp)
 {
+
+	if (!GridPanel || !ItemWidgetClass || !InventoryComp)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Inventory Panel] Problem with Grid/ItemWidget/InventoryComponent!"));
+		return;
+
+	}
+
 	GridPanel->ClearChildren();
 
-	if (!LinkedInventory) return;
-
-	const int32 Columns = 5;
 	int32 Row = 0;
 	int32 Column = 0;
+	const int32 ColumnsPerRow = 5;
 
-	for (UItemBase* Item : LinkedInventory->GetItems())
+	for (UItemBase* Item : InventoryComp->GetItems())
 	{
-		if (!Item) continue;
-
-		UInventoryItemWidget* ItemWidget = CreateWidget<UInventoryItemWidget>(this, ItemWidgetClass);
-		if (ItemWidget)
+		if (UInventoryItemWidget* ItemWidget = CreateWidget<UInventoryItemWidget>(this, ItemWidgetClass))
 		{
-			ItemWidget->InitializeItem(Item);
-			if (UUniformGridSlot* GridSlot = GridPanel->AddChildToUniformGrid(ItemWidget, Row, Column))
+			ItemWidget->InitItem(Item);
+
+			if (UUniformGridSlot* Slot = GridPanel->AddChildToUniformGrid(ItemWidget, Row, Column))
 			{
-				GridSlot->SetHorizontalAlignment(HAlign_Fill);
-				GridSlot->SetVerticalAlignment(VAlign_Fill);
+				Slot->SetHorizontalAlignment(HAlign_Fill);
+				Slot->SetVerticalAlignment(VAlign_Fill);
 			}
 
-			if (++Column >= Columns)
+			if (++Column >= ColumnsPerRow)
 			{
 				Column = 0;
 				Row++;
@@ -48,16 +45,22 @@ void UInventoryPanel::RefreshInventory()
 	}
 }
 
-
-
 /*
+void UInventoryPanel::InitializePanel(UInventoryComponent* InventoryComp)
+{
+	LinkedInventory = InventoryComp;
+	LinkedInventory->OnInventoryUpdated.AddDynamic(this, &UInventoryPanel::RefreshInventory);
+	RefreshInventory();
+}
+
+
 void UInventoryPanel::NativeConstruct()
 {
 	Super::NativeConstruct();
 }
 
 
-void UInventoryPanel::PopulateInventory()
+void UInventoryPanel::PopulateInventory(const TArray<UItemBase*>& Items)
 {
 	if (!IsValid(GridPanel))
 	{
@@ -81,14 +84,13 @@ void UInventoryPanel::PopulateInventory()
 	}
 
 
-	int Row = 0;
-	int Col = 0;
+	int32 Row = 0;
+	int32 Col = 0;
 
 	const int32 MaxColumns = 5; // Magic number inlocuit cu constanta
 
 	UE_LOG(LogTemp, Log, TEXT("[InventoryPanel] Populam gridul cu %d iteme."), LinkedInventory->ItemIDs.Num());
-
-
+	
 	for (const FName& ItemID : LinkedInventory->ItemIDs)
 	{
 
@@ -149,9 +151,40 @@ void UInventoryPanel::PopulateInventory()
 		
 	}
 
+
+
 	UE_LOG(LogTemp, Log, TEXT("[InventoryPanel] Populare inventar finalizata."));
 }
 
+
+void UInventoryPanel::PopulateInventory(const TArray<UItemBase*>& Items)
+{
+	if (!GridPanel || !ItemWidgetClass) return;
+
+	GridPanel->ClearChildren();
+
+	int32 Row = 0, Column = 0;
+	for (UItemBase* Item : Items)
+	{
+		if (UInventoryItemWidget* ItemWidget = CreateWidget<UInventoryItemWidget>(this, ItemWidgetClass))
+		{
+			ItemWidget->InitItem(Item); // Folosește InitItem
+
+			if (UUniformGridSlot* NewSlot = GridPanel->AddChildToUniformGrid(ItemWidget, Row, Column))
+			{
+				NewSlot->SetHorizontalAlignment(HAlign_Fill);
+				NewSlot->SetVerticalAlignment(VAlign_Fill);
+			}
+
+			Column++;
+			if (Column >= 5)
+			{
+				Column = 0;
+				Row++;
+			}
+		}
+	}
+}
 
 void UInventoryPanel::BindToInventory(UInventoryComponent* InventoryComponent)
 {
@@ -187,7 +220,6 @@ void UInventoryPanel::BindToInventory(UInventoryComponent* InventoryComponent)
 
 }
 
-
 void UInventoryPanel::NativeDestruct()
 {
 	Super::NativeDestruct();
@@ -200,5 +232,4 @@ void UInventoryPanel::NativeDestruct()
 }
 
 */
-
 

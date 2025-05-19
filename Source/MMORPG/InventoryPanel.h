@@ -6,8 +6,10 @@
 
 class UUniformGridPanel;
 class UInventoryComponent;
-class UInventoryItem;
+//class UInventoryItem;
 class UInventoryItemWidget;
+//class UItemBase;
+
 
 
 UCLASS()
@@ -17,7 +19,10 @@ class MMORPG_API UInventoryPanel : public UUserWidget
 	
 public:
 
-	void InitializePanel(UInventoryComponent* InventoryComp);
+	//void InitializePanel(UInventoryComponent* InventoryComp);
+
+	UFUNCTION(BlueprintCallable)
+	void RefreshInventory(UInventoryComponent* InventoryComp);
 
 protected:
 
@@ -27,27 +32,25 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UInventoryItemWidget> ItemWidgetClass;
 	
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	//TSubclassOf<UInventoryItem> InventoryItemClass;
+
 private:
 
 	// referinta catre inventory
-	UPROPERTY()
-	UInventoryComponent* LinkedInventory;
-
-	void RefreshInventory();
-
-	/*
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-	TSubclassOf<UInventoryItem> InventoryItemClass;
-
-	UFUNCTION()
-	void PopulateInventory();
-	void BindToInventory(UInventoryComponent* InventoryComponent);
-
-	void NativeDestruct();
+	//UPROPERTY()
+	//UInventoryComponent* LinkedInventory;
 
 
-protected:
+	//UFUNCTION()
+	//void PopulateInventory(const TArray<UItemBase*>& Items);
+	//void BindToInventory(UInventoryComponent* InventoryComponent);
 
-	virtual void NativeConstruct() override;
-	*/
+	//void NativeDestruct();
+
+
+//protected:
+
+	//virtual void NativeConstruct() override;
+
 };
