@@ -19,6 +19,7 @@
 #include "MainHUD.h"
 #include "ItemBase.h"
 #include "ItemPickup.h"
+#include "InventoryPanel.h"
 
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -2073,6 +2074,35 @@ void AThirdPersonMPCharacter::LevelUp()
 }
 
 
+UInventoryPanel* AThirdPersonMPCharacter::GetInventoryPanel() const
+{
+	if (APlayerController* PC = GetController<APlayerController>())
+	{
+		if (UBasicHUD* HUD_2 = Cast<UBasicHUD>(PC->GetHUD()))
+		{
+			return HUD_2->InventoryPanel;
+		}
+	}
+	return nullptr;
+}
+
+void AThirdPersonMPCharacter::SetupInventoryConnection()
+{
+	if (UInventoryComponent* InvComp = GetInventoryComponent())
+	{
+		if (UInventoryPanel* InvPanel = GetInventoryPanel())
+		{
+			// First bind the inventory
+			InvPanel->BindToInventory(InvComp);
+
+			// Then connect the delegate
+			InvComp->OnInventoryUpdated.AddDynamic(InvPanel, &UInventoryPanel::RefreshInventory);
+
+			// Force initial refresh
+			InvPanel->RefreshInventory(InvComp->GetItems());
+		}
+	}
+}
 
 // Called when the game starts or when spawned
 void AThirdPersonMPCharacter::BeginPlay()
@@ -2080,16 +2110,8 @@ void AThirdPersonMPCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	HUD = Cast<AMainHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
-	/*
-	if (APlayerController* PC = GetController<APlayerController>())
-	{
 
-		if (UBasicHUD* HUD = PC->GetHUD<UBasicHUD>())
-		{
-			HUD->InitializeInventory(GetInventoryComponent());
-		}
-	}
-*/
+
 	if (HasAuthority()) 
 	{
 		SetMaxHealth(BaseMaxHealth);

@@ -7,11 +7,15 @@
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
 
+void UInventoryPanel::BindToInventory(UInventoryComponent* InventoryComponent)
+{
+	LinkedInventory = InventoryComponent;
+}
 
-void UInventoryPanel::RefreshInventory(UInventoryComponent* InventoryComp)
+void UInventoryPanel::RefreshInventory(const TArray<class UItemBase*>& Items)
 {
 
-	if (!GridPanel || !ItemWidgetClass || !InventoryComp)
+	if (!GridPanel || !ItemWidgetClass)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[Inventory Panel] Problem with Grid/ItemWidget/InventoryComponent!"));
 		return;
@@ -24,7 +28,7 @@ void UInventoryPanel::RefreshInventory(UInventoryComponent* InventoryComp)
 	int32 Column = 0;
 	const int32 ColumnsPerRow = 5;
 
-	for (UItemBase* Item : InventoryComp->GetItems())
+	for (UItemBase* Item : Items)
 	{
 		if (UInventoryItemWidget* ItemWidget = CreateWidget<UInventoryItemWidget>(this, ItemWidgetClass))
 		{

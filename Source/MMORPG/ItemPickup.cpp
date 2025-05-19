@@ -80,7 +80,7 @@ void AItemPickup::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActo
 					{
 						if (Player->GetInventoryPanel())
 						{
-							Player->GetInventoryPanel()->RefreshInventory(Inventory);
+							Player->GetInventoryPanel()->RefreshInventory(Inventory->GetItems());
 						}
 						bIsPickedUp = true;
 						SetLifeSpan(0.2f);

@@ -8,7 +8,7 @@ class UUniformGridPanel;
 class UInventoryComponent;
 //class UInventoryItem;
 class UInventoryItemWidget;
-//class UItemBase;
+class UItemBase;
 
 
 
@@ -22,7 +22,10 @@ public:
 	//void InitializePanel(UInventoryComponent* InventoryComp);
 
 	UFUNCTION(BlueprintCallable)
-	void RefreshInventory(UInventoryComponent* InventoryComp);
+	void RefreshInventory(const TArray<class UItemBase*>& Items);
+
+	UFUNCTION(BlueprintCallable)
+	void BindToInventory(UInventoryComponent* InventoryComponent);
 
 protected:
 
@@ -32,17 +35,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UInventoryItemWidget> ItemWidgetClass;
 
-	//UFUNCTION(BlueprintCallable)
-	//void BindToInventory(UInventoryComponent* InventoryComponent);
-
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	//TSubclassOf<UInventoryItem> InventoryItemClass;
 
 private:
 
 	 // referinta catre inventory
-	//UPROPERTY()
-	//UInventoryComponent* LinkedInventory;
+	UPROPERTY()
+	UInventoryComponent* LinkedInventory;
 
 
 	//UFUNCTION()

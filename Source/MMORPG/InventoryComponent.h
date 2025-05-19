@@ -4,8 +4,6 @@
 #include "Components/ActorComponent.h"
 #include "InventoryComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryUpdated);
-
 class UItemBase;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -14,8 +12,13 @@ class MMORPG_API UInventoryComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInventoryUpdated, const TArray<UItemBase*>&, Items);
+
 	// Sets default values for this component's properties (constructor)
 	UInventoryComponent();
+
+	
 
 	// Proprietate pentru inventory
 	UPROPERTY( VisibleAnywhere, Category = "Inventory")
@@ -27,9 +30,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
 	int32 MaxItems = 20;
 
-	// Delegate pentru actualizarea inventarului
-	//UPROPERTY(BlueprintAssignable, Category = "Inventory")
-	//FOnInventoryUpdated OnInventoryUpdated;
+	// Delegate pentru actualizarea UI-ului 
+	UPROPERTY(BlueprintAssignable, Category = "Inventory")
+	FOnInventoryUpdated OnInventoryUpdated;
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool AddItem(UItemBase* Item);

@@ -24,6 +24,7 @@ class UInputAction;
 struct FInputActionValue;
 class AMainHUD;
 class AItemPickup;
+class UInventoryPanel;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
@@ -114,7 +115,9 @@ public:
 	UInventoryComponent* GetInventoryComponent() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	UInventoryPanel* GetInventoryPanel() const { return InventoryPanel; }
+	UInventoryPanel* GetInventoryPanel() const;
+
+	void SetupInventoryConnection();
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Input)

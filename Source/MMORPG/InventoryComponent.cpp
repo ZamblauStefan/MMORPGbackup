@@ -18,6 +18,7 @@ UInventoryComponent::UInventoryComponent()
 	// ...
 }
 
+
 bool UInventoryComponent::AddItem(UItemBase* Item)
 {
 	if (!Item || Items.Num() >= MaxItems)
@@ -39,7 +40,7 @@ bool UInventoryComponent::AddItem(UItemBase* Item)
 	UE_LOG(LogTemp, Warning, TEXT("Adding item: %s"), *Item->ItemID.ToString()); // Debug 1
 	Items.Add(Item);
 	UE_LOG(LogTemp, Warning, TEXT("Inventory now has %d items"), Items.Num()); // Debug 2
-	//OnInventoryUpdated.Broadcast(Items);
+	OnInventoryUpdated.Broadcast(Items);
 	return true;
 
 }
