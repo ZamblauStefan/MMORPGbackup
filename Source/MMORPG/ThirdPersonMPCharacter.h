@@ -100,6 +100,9 @@ class MMORPG_API AThirdPersonMPCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* InteractAction;
 
+	UPROPERTY()
+	UInventoryPanel* InventoryPanel;
+
 public:
 	// Sets default values for this character's properties
 	AThirdPersonMPCharacter();
@@ -109,6 +112,9 @@ public:
 
 	// inventory
 	UInventoryComponent* GetInventoryComponent() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	UInventoryPanel* GetInventoryPanel() const { return InventoryPanel; }
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Input)

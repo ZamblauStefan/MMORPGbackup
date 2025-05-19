@@ -31,6 +31,10 @@ public:
 	// Functie pentru legarea delegate-ului
 	void BindInventoryToUI(UInventoryComponent* InventoryComponent);
 
-	//void NativeConstruct();
+	void NativeConstruct();
+
+	 // Iniaializare InventoryPanel cand HUD-ul e creat
+	UFUNCTION(BlueprintCallable)
+	void InitializeInventory();
 
 };

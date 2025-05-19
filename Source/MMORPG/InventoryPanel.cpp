@@ -30,10 +30,10 @@ void UInventoryPanel::RefreshInventory(UInventoryComponent* InventoryComp)
 		{
 			ItemWidget->InitItem(Item);
 
-			if (UUniformGridSlot* Slot = GridPanel->AddChildToUniformGrid(ItemWidget, Row, Column))
+			if (UUniformGridSlot* GridSlot = GridPanel->AddChildToUniformGrid(ItemWidget, Row, Column))
 			{
-				Slot->SetHorizontalAlignment(HAlign_Fill);
-				Slot->SetVerticalAlignment(VAlign_Fill);
+				GridSlot->SetHorizontalAlignment(HAlign_Fill);
+				GridSlot->SetVerticalAlignment(VAlign_Fill);
 			}
 
 			if (++Column >= ColumnsPerRow)

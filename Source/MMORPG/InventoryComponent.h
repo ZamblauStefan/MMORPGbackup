@@ -21,22 +21,22 @@ public:
 	UPROPERTY( VisibleAnywhere, Category = "Inventory")
 	TArray<UItemBase*> Items; 
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
-	TArray<FName> ItemIDs;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
+	//TArray<FName> ItemIDs;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
 	int32 MaxItems = 20;
 
 	// Delegate pentru actualizarea inventarului
-	UPROPERTY(BlueprintAssignable, Category = "Inventory")
-	FOnInventoryUpdated OnInventoryUpdated;
+	//UPROPERTY(BlueprintAssignable, Category = "Inventory")
+	//FOnInventoryUpdated OnInventoryUpdated;
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool AddItem(UItemBase* Item);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	TArray<UItemBase*> GetItems() const { return Items; }
-
+/*
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool RemoveItem(FName ItemID, int32 Quantity = 1);
 
@@ -45,7 +45,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool HasItem(FName ItemID, int32 Quantity = 1) const;
-/*
+
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_AddItem(UItemBase* NewItem);
 	void Server_AddItem_Implementation(UItemBase* NewItem);
@@ -58,9 +58,9 @@ public:
 	void Server_DropItem(FName ItemID, int32 Quantity);
 	void Server_DropItem_Implementation(FName ItemID, int32 Quantity);
 	bool Server_DropItem_Validate(FName ItemID, int32 Quantity) { return true; }
-*/
-	UItemBase* FindItemByID(FName ItemID) const;
 
+	UItemBase* FindItemByID(FName ItemID) const;
+*/
 
 	// Called every frame
 	//virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;

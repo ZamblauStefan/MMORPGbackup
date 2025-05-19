@@ -3,6 +3,7 @@
 
 #include "ItemPickup.h"
 #include "ItemBase.h"
+#include "InventoryPanel.h"
 #include "ThirdPersonMPCharacter.h"
 #include "Components/SphereComponent.h"
 #include "InventoryComponent.h"
@@ -26,14 +27,31 @@ void AItemPickup::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActo
 {
 	if (HasAuthority() && !bIsPickedUp) // Doar serverul proceseaza pickup-ul
 	{
-		if (auto* Inventory = OtherActor->FindComponentByClass<UInventoryComponent>())
+		// verificam ca OtherActor este ThirdPersonMPCharacter
+		if (AThirdPersonMPCharacter* Player = Cast<AThirdPersonMPCharacter>(OtherActor))
 		{
-			if (UItemBase* NewItem = NewObject<UItemBase>(this, ItemClass))
+			// obtinem componenta Inveotry de la player
+			UInventoryComponent* Inventory = Player->FindComponentByClass<UInventoryComponent>();
+			if (Inventory) // verificam ca exista inventory si ca itemclass e valid
 			{
-				if (Inventory->AddItem(NewItem))
+				// cream instanta a item-ului
+				UItemBase* NewItem = NewObject<UItemBase>(this);
+				if (ItemDataTable)
 				{
-					bIsPickedUp = true;
-					Destroy();
+					UItemBase* Row = ItemDataTable->FindRow<UItemBase>(ItemRowName, TEXT("Context"));
+					FMemory::Memcpy(NewItem, Row, sizeof(UItemBase));
+
+					// adaugam item in inventory
+					if (Inventory->AddItem(NewItem))
+					{
+						if (Player->GetInventoryPanel())
+						{
+							Player->GetInventoryPanel()->RefreshInventory(Inventory);
+						}
+						bIsPickedUp = true;
+						
+						Destroy();
+					}
 				}
 			}
 		}

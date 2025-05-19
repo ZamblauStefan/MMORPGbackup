@@ -1,4 +1,4 @@
-
+﻿
 #pragma once
 
 #include "CoreMinimal.h"
@@ -19,6 +19,12 @@ class MMORPG_API AItemPickup : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AItemPickup();
+
+	UPROPERTY(EditAnywhere, Category = "Item Data")
+	UDataTable* ItemDataTable;  // Referinta catre DataTable-u (TestItems)
+
+	UPROPERTY(EditAnywhere, Category = "Item Data")
+	FName ItemRowName = "test_001";  // Numele randului din tabel
 
 	UPROPERTY(EditAnywhere, Category = "Item")
 	TSubclassOf<UItemBase> ItemClass;

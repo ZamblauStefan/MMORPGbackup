@@ -8,6 +8,13 @@
 #include "InventoryComponent.h"
 #include "Kismet/GameplayStatics.h"
 
+
+void UBasicHUD::NativeConstruct()
+{
+	Super::NativeConstruct();
+	InitializeInventory();
+}
+
 void UBasicHUD::ToggleCharacterDetails()
 {
 	if (!CharacterDetailsPanel)
@@ -23,6 +30,15 @@ void UBasicHUD::ToggleCharacterDetails()
 			: ESlateVisibility::Visible
 		);
 
+}
+
+void UBasicHUD::InitializeInventory()
+{
+	if (InventoryPanel)
+	{
+		InventoryPanel->BindToInventory(PlayerInventory);
+		return;
+	}
 }
 
 void UBasicHUD::ToggleInventory()

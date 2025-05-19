@@ -13,9 +13,7 @@ UInventoryComponent::UInventoryComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
-	SetIsReplicatedByDefault(true);
-
-
+	//SetIsReplicatedByDefault(true);
 
 	// ...
 }
@@ -25,7 +23,7 @@ bool UInventoryComponent::AddItem(UItemBase* Item)
 	if (!Item || Items.Num() >= MaxItems)
 		return false;
 
-	// Verifică dubluri daca e necesar
+	// Verifica dubluri daca e necesar
 	if (Item->NumericData.bIsStackable)
 	{
 		for (auto& ExistingItem : Items)
@@ -37,9 +35,15 @@ bool UInventoryComponent::AddItem(UItemBase* Item)
 			}
 		}
 	}
-
-	Items.Add(Item);
+	else 
+	{
+		Items.Add(Item);
+		UE_LOG(LogTemp, Warning, TEXT("Added item: %s"), *Item->ItemID.ToString());
+		return true;
+	}
+	 
 	return true;
+
 }
 
 /*
@@ -99,7 +103,7 @@ void UInventoryComponent::Server_AddItem_Implementation(UItemBase* NewItem)
 {
 	AddItem(NewItem);
 }
-*/
+
 
 UItemBase* UInventoryComponent::GetItem(FName ItemID) const
 {
@@ -112,6 +116,7 @@ UItemBase* UInventoryComponent::GetItem(FName ItemID) const
 	}
 	return nullptr;
 }
+
 
 bool UInventoryComponent::RemoveItem(FName ItemID, int32 Quantity)
 {
@@ -132,13 +137,15 @@ bool UInventoryComponent::RemoveItem(FName ItemID, int32 Quantity)
 }
 
 
+
+
 bool UInventoryComponent::HasItem(FName ItemID, int32 Quantity) const
 {
 	UItemBase* Item = GetItem(ItemID);
 	return Item && Item->Quantity >= Quantity;
 }
 
-/*
+
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -195,7 +202,7 @@ void UInventoryComponent::Server_DropItem_Implementation(FName ItemID, int32 Qua
 		}
 	}
 }
-*/
+
 
 UItemBase* UInventoryComponent::FindItemByID(FName ItemID) const
 {
@@ -211,7 +218,7 @@ UItemBase* UInventoryComponent::FindItemByID(FName ItemID) const
 	UE_LOG(LogTemp, Error, TEXT("[InventoryComponent] Nu am gasit item-ul %s in inventory!"), *ItemID.ToString());
 	return nullptr;
 }
-
+*/
 
 void UInventoryComponent::BeginPlay()
 {

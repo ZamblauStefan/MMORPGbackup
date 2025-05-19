@@ -52,6 +52,7 @@ UItemBase* UItemBase::CreateItemCopy()
 
 void UItemBase::SetQuantity(const int32 NewQuantity)
 {
+	/*
 	if (NewQuantity != Quantity)
 	{
 		Quantity = FMath::Clamp(NewQuantity, 0 , NumericData.bIsStackable ? NumericData.MaxStack : 1);
@@ -64,6 +65,7 @@ void UItemBase::SetQuantity(const int32 NewQuantity)
 			}
 		}
 	}
+	*/
 }
 
 void UItemBase::Use(AThirdPersonMPCharacter* Character)

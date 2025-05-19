@@ -20,7 +20,7 @@ class MMORPG_API UItemBase : public UObject
 
 public:
 	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
-	int32 Quantity;
+	int32 Quantity = 0;
 	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	FName ItemID;
 	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
