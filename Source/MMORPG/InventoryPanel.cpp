@@ -45,6 +45,21 @@ void UInventoryPanel::RefreshInventory(UInventoryComponent* InventoryComp)
 	}
 }
 
+void UInventoryPanel::BindToInventory(UInventoryComponent* InventoryComp)
+{
+	LinkedInventory = InventoryComp;
+
+	// Refresh UI imediat dupa legare
+	if (LinkedInventory)
+	{
+		RefreshInventory(LinkedInventory);
+
+		// Optional: Asculta pentru modificari viitoare
+		//LinkedInventory->OnInventoryUpdated.AddDynamic(this, &UInventoryPanel::RefreshInventory);
+	}
+}
+
+
 /*
 void UInventoryPanel::InitializePanel(UInventoryComponent* InventoryComp)
 {

@@ -2081,6 +2081,14 @@ void AThirdPersonMPCharacter::BeginPlay()
 
 	HUD = Cast<AMainHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
 	
+	if (APlayerController* PC = GetController<APlayerController>())
+	{
+
+		if (UBasicHUD* HUD = PC->GetHUD<UBasicHUD>())
+		{
+			HUD->InitializeInventory(GetInventoryComponent());
+		}
+	}
 
 	if (HasAuthority()) 
 	{

@@ -32,7 +32,7 @@ void UBasicHUD::ToggleCharacterDetails()
 
 }
 
-void UBasicHUD::InitializeInventory()
+void UBasicHUD::InitializeInventory(UInventoryComponent* PlayerInventory)
 {
 	if (InventoryPanel)
 	{

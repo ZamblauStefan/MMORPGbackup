@@ -31,20 +31,22 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UInventoryItemWidget> ItemWidgetClass;
-	
+
+	UFUNCTION(BlueprintCallable)
+	void BindToInventory(UInventoryComponent* InventoryComponent);
+
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	//TSubclassOf<UInventoryItem> InventoryItemClass;
 
 private:
 
-	// referinta catre inventory
-	//UPROPERTY()
-	//UInventoryComponent* LinkedInventory;
+	 // referinta catre inventory
+	UPROPERTY()
+	UInventoryComponent* LinkedInventory;
 
 
 	//UFUNCTION()
 	//void PopulateInventory(const TArray<UItemBase*>& Items);
-	//void BindToInventory(UInventoryComponent* InventoryComponent);
 
 	//void NativeDestruct();
 
