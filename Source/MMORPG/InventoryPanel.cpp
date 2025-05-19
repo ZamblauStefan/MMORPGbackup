@@ -38,6 +38,17 @@ void UInventoryPanel::RefreshInventory(const TArray<class UItemBase*>& Items)
 			{
 				GridSlot->SetHorizontalAlignment(HAlign_Fill);
 				GridSlot->SetVerticalAlignment(VAlign_Fill);
+
+				UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Processing item: %s"), *Item->ItemID.ToString());
+
+				if (Item->AssetData.Icon)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Item has Icon"));
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Item doesn't have Icon"));
+				}
 			}
 
 			if (++Column >= ColumnsPerRow)

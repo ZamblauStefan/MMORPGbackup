@@ -2111,6 +2111,16 @@ void AThirdPersonMPCharacter::BeginPlay()
 
 	HUD = Cast<AMainHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
 
+	// Legatura intre componenta si UI
+	if (UInventoryComponent* InvComp = GetInventoryComponent())
+	{
+		if (UInventoryPanel* InvPanel = GetInventoryPanel())
+		{
+			InvComp->OnInventoryUpdated.AddDynamic(InvPanel, &UInventoryPanel::RefreshInventory);
+			// Forteaza actualizarea initiala
+			InvPanel->RefreshInventory(InvComp->GetItems());
+		}
+	}
 
 	if (HasAuthority()) 
 	{
