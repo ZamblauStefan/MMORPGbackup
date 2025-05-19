@@ -35,13 +35,11 @@ bool UInventoryComponent::AddItem(UItemBase* Item)
 			}
 		}
 	}
-	else 
-	{
-		Items.Add(Item);
-		UE_LOG(LogTemp, Warning, TEXT("Added item: %s"), *Item->ItemID.ToString());
-		return true;
-	}
-	 
+	
+	UE_LOG(LogTemp, Warning, TEXT("Adding item: %s"), *Item->ItemID.ToString()); // Debug 1
+	Items.Add(Item);
+	UE_LOG(LogTemp, Warning, TEXT("Inventory now has %d items"), Items.Num()); // Debug 2
+	//OnInventoryUpdated.Broadcast(Items);
 	return true;
 
 }

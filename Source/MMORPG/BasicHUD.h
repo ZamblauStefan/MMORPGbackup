@@ -34,7 +34,7 @@ public:
 	void NativeConstruct();
 
 	 // Iniaializare InventoryPanel cand HUD-ul e creat
-	UFUNCTION(BlueprintCallable)
-	void InitializeInventory(UInventoryComponent* PlayerInventory);
+	//UFUNCTION(BlueprintCallable)
+	//void InitializeInventory(UInventoryComponent* PlayerInventory);
 
 };

@@ -2080,7 +2080,7 @@ void AThirdPersonMPCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	HUD = Cast<AMainHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
-	
+	/*
 	if (APlayerController* PC = GetController<APlayerController>())
 	{
 
@@ -2089,7 +2089,7 @@ void AThirdPersonMPCharacter::BeginPlay()
 			HUD->InitializeInventory(GetInventoryComponent());
 		}
 	}
-
+*/
 	if (HasAuthority()) 
 	{
 		SetMaxHealth(BaseMaxHealth);

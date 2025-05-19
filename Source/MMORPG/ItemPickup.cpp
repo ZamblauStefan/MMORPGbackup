@@ -25,6 +25,8 @@ AItemPickup::AItemPickup()
 
 void AItemPickup::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+
+	UE_LOG(LogTemp, Warning, TEXT("Overlap with: %s"), *OtherActor->GetName());
 	if (HasAuthority() && !bIsPickedUp) // Doar serverul proceseaza pickup-ul
 	{
 		// verificam ca OtherActor este ThirdPersonMPCharacter
@@ -34,12 +36,44 @@ void AItemPickup::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActo
 			UInventoryComponent* Inventory = Player->FindComponentByClass<UInventoryComponent>();
 			if (Inventory) // verificam ca exista inventory si ca itemclass e valid
 			{
-				// cream instanta a item-ului
-				UItemBase* NewItem = NewObject<UItemBase>(this);
-				if (ItemDataTable)
+				if (!ItemDataTable)
 				{
-					UItemBase* Row = ItemDataTable->FindRow<UItemBase>(ItemRowName, TEXT("Context"));
-					FMemory::Memcpy(NewItem, Row, sizeof(UItemBase));
+					UE_LOG(LogTemp, Error, TEXT("ItemDataTable is invalid!"));
+				
+				}
+				else
+				{
+					FItemData* Row = ItemDataTable->FindRow<FItemData>(ItemRowName, TEXT(""));
+					UItemBase* NewItem = NewObject<UItemBase>(this);
+					//FMemory::Memcpy(NewItem, Row, sizeof(FItemData));
+
+					NewItem->Quantity = Quantity;
+					NewItem->ItemID = Row->ItemID;
+					NewItem->OwningInventory = Player->GetInventoryComponent();
+					NewItem->ItemType = Row->ItemType;
+					NewItem->ItemQuality = Row->ItemQuality;
+					NewItem->ItemStatistics = Row->ItemStatistics;
+					NewItem->TextData = Row->TextData;
+					NewItem->NumericData = Row->NumericData;
+					NewItem->AssetData = Row->AssetData;
+					NewItem->LevelRequirement = Row->LevelRequirement;
+					NewItem->Tags = Row->Tags;
+					NewItem->SpawnableActorClass = Row->SpawnableActorClass;
+					NewItem->MaxDurability = Row->MaxDurability;
+					NewItem->Cooldown = Row->Cooldown;
+					NewItem->OnUse = Row->OnUse;
+
+
+					if (Row)
+					{
+						UE_LOG(LogTemp, Warning, TEXT("[ItemPickup] Row found: %s"), *Row->ItemID.ToString());
+						UE_LOG(LogTemp, Warning, TEXT("[ItemPickup] NewItem NameID: %s"), *NewItem->ItemID.ToString());
+
+					}
+					else
+					{
+						UE_LOG(LogTemp, Error, TEXT("[ItemPickup] Row NOT found!"));
+					}
 
 					// adaugam item in inventory
 					if (Inventory->AddItem(NewItem))
@@ -49,8 +83,8 @@ void AItemPickup::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActo
 							Player->GetInventoryPanel()->RefreshInventory(Inventory);
 						}
 						bIsPickedUp = true;
-						
-						Destroy();
+						SetLifeSpan(0.2f);
+						//Destroy();
 					}
 				}
 			}

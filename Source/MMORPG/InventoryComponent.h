@@ -19,7 +19,7 @@ public:
 
 	// Proprietate pentru inventory
 	UPROPERTY( VisibleAnywhere, Category = "Inventory")
-	TArray<UItemBase*> Items; 
+	TArray<TObjectPtr<UItemBase>>  Items;
 
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
 	//TArray<FName> ItemIDs;

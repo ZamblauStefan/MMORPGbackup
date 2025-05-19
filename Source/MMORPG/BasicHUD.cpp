@@ -12,7 +12,7 @@
 void UBasicHUD::NativeConstruct()
 {
 	Super::NativeConstruct();
-	InitializeInventory();
+	//InitializeInventory();
 }
 
 void UBasicHUD::ToggleCharacterDetails()
@@ -31,7 +31,7 @@ void UBasicHUD::ToggleCharacterDetails()
 		);
 
 }
-
+/*
 void UBasicHUD::InitializeInventory(UInventoryComponent* PlayerInventory)
 {
 	if (InventoryPanel)
@@ -40,7 +40,7 @@ void UBasicHUD::InitializeInventory(UInventoryComponent* PlayerInventory)
 		return;
 	}
 }
-
+*/
 void UBasicHUD::ToggleInventory()
 {
 	if (!InventoryPanel)

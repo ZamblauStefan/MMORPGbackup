@@ -45,6 +45,7 @@ void UInventoryPanel::RefreshInventory(UInventoryComponent* InventoryComp)
 	}
 }
 
+/*
 void UInventoryPanel::BindToInventory(UInventoryComponent* InventoryComp)
 {
 	LinkedInventory = InventoryComp;
@@ -58,7 +59,7 @@ void UInventoryPanel::BindToInventory(UInventoryComponent* InventoryComp)
 		//LinkedInventory->OnInventoryUpdated.AddDynamic(this, &UInventoryPanel::RefreshInventory);
 	}
 }
-
+*/
 
 /*
 void UInventoryPanel::InitializePanel(UInventoryComponent* InventoryComp)

@@ -32,8 +32,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UInventoryItemWidget> ItemWidgetClass;
 
-	UFUNCTION(BlueprintCallable)
-	void BindToInventory(UInventoryComponent* InventoryComponent);
+	//UFUNCTION(BlueprintCallable)
+	//void BindToInventory(UInventoryComponent* InventoryComponent);
 
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	//TSubclassOf<UInventoryItem> InventoryItemClass;
@@ -41,8 +41,8 @@ protected:
 private:
 
 	 // referinta catre inventory
-	UPROPERTY()
-	UInventoryComponent* LinkedInventory;
+	//UPROPERTY()
+	//UInventoryComponent* LinkedInventory;
 
 
 	//UFUNCTION()
