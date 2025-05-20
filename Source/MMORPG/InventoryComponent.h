@@ -5,6 +5,7 @@
 #include "InventoryComponent.generated.h"
 
 class UItemBase;
+class AItemPickup;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class MMORPG_API UInventoryComponent : public UActorComponent
@@ -17,6 +18,8 @@ public:
 
 	// Sets default values for this component's properties (constructor)
 	UInventoryComponent();
+
+	void AddItemFromWorld(AItemPickup* ItemPickup);
 
 	
 

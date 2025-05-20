@@ -24,6 +24,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RefreshInventory(const TArray<class UItemBase*>& Items);
 
+	void NativeConstruct();
+
 	UFUNCTION(BlueprintCallable)
 	void BindToInventory(UInventoryComponent* InventoryComponent);
 
@@ -53,6 +55,5 @@ private:
 
 //protected:
 
-	//virtual void NativeConstruct() override;
 
 };

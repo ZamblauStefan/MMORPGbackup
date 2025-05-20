@@ -18,7 +18,6 @@ UInventoryComponent::UInventoryComponent()
 	// ...
 }
 
-
 bool UInventoryComponent::AddItem(UItemBase* Item)
 {
 	if (!Item || Items.Num() >= MaxItems)

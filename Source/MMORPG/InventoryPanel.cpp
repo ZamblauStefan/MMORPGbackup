@@ -9,7 +9,12 @@
 
 void UInventoryPanel::BindToInventory(UInventoryComponent* InventoryComponent)
 {
+	if (!InventoryComponent) return;
+
 	LinkedInventory = InventoryComponent;
+	RefreshInventory(LinkedInventory->GetItems());
+
+	LinkedInventory->OnInventoryUpdated.AddDynamic(this, &UInventoryPanel::RefreshInventory);
 }
 
 void UInventoryPanel::RefreshInventory(const TArray<class UItemBase*>& Items)
@@ -39,6 +44,7 @@ void UInventoryPanel::RefreshInventory(const TArray<class UItemBase*>& Items)
 				GridSlot->SetHorizontalAlignment(HAlign_Fill);
 				GridSlot->SetVerticalAlignment(VAlign_Fill);
 
+
 				UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Processing item: %s"), *Item->ItemID.ToString());
 
 				if (Item->AssetData.Icon)
@@ -60,37 +66,24 @@ void UInventoryPanel::RefreshInventory(const TArray<class UItemBase*>& Items)
 	}
 }
 
-/*
-void UInventoryPanel::BindToInventory(UInventoryComponent* InventoryComp)
-{
-	LinkedInventory = InventoryComp;
-
-	// Refresh UI imediat dupa legare
-	if (LinkedInventory)
-	{
-		RefreshInventory(LinkedInventory);
-
-		// Optional: Asculta pentru modificari viitoare
-		//LinkedInventory->OnInventoryUpdated.AddDynamic(this, &UInventoryPanel::RefreshInventory);
-	}
-}
-*/
-
-/*
-void UInventoryPanel::InitializePanel(UInventoryComponent* InventoryComp)
-{
-	LinkedInventory = InventoryComp;
-	LinkedInventory->OnInventoryUpdated.AddDynamic(this, &UInventoryPanel::RefreshInventory);
-	RefreshInventory();
-}
 
 
 void UInventoryPanel::NativeConstruct()
 {
 	Super::NativeConstruct();
+	
+
+	if (APawn* PlayerPawn = GetOwningPlayerPawn())
+	{
+		UInventoryComponent* InvComp = PlayerPawn->FindComponentByClass<UInventoryComponent>();
+		if (InvComp)
+		{
+			BindToInventory(InvComp); 
+		}
+	}
 }
 
-
+/*
 void UInventoryPanel::PopulateInventory(const TArray<UItemBase*>& Items)
 {
 	if (!IsValid(GridPanel))

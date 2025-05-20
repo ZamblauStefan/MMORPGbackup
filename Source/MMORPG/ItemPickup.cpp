@@ -45,7 +45,6 @@ void AItemPickup::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActo
 				{
 					FItemData* Row = ItemDataTable->FindRow<FItemData>(ItemRowName, TEXT(""));
 					UItemBase* NewItem = NewObject<UItemBase>(this);
-					//FMemory::Memcpy(NewItem, Row, sizeof(FItemData));
 
 					NewItem->Quantity = Quantity;
 					NewItem->ItemID = Row->ItemID;
@@ -83,7 +82,14 @@ void AItemPickup::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActo
 							Player->GetInventoryPanel()->RefreshInventory(Inventory->GetItems());
 						}
 						bIsPickedUp = true;
-						SetLifeSpan(0.2f);
+						
+
+						// Distruge itemul din lume
+						//if (GetOwner()->HasAuthority())
+							Multicast_DestroyItem();
+				
+
+						//SetLifeSpan(0.2f);
 						//Destroy();
 					}
 				}
@@ -110,11 +116,15 @@ void AItemPickup::OnRep_ItemData()
 void AItemPickup::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(AItemPickup, bIsPickedUp);
-
-	//DOREPLIFETIME(AItemPickup, ItemID);
+	DOREPLIFETIME(AItemPickup, ItemID);
 	//DOREPLIFETIME(AItemPickup, Quantity);
 }
+
+void AItemPickup::Multicast_DestroyItem_Implementation()
+{
+	Destroy(); // Distruge actorul pe toti clientii
+}
+
 
 void AItemPickup::OnRep_IsPickedUp()
 {

@@ -9,7 +9,7 @@ void UInventoryItemWidget::InitItem(UItemBase* Item)
 {
     if (!Item || !ItemIcon || !Quantity)
     {
-        UE_LOG(LogTemp, Warning, TEXT("InventoryItemWidget: Invalid item or UI elements!"));
+        UE_LOG(LogTemp, Warning, TEXT("[InventoryItemWidget] Invalid item or UI elements!"));
         return;
     }
 
@@ -20,7 +20,7 @@ void UInventoryItemWidget::InitItem(UItemBase* Item)
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("Item %s has no icon!"), *Item->ItemID.ToString());
+        UE_LOG(LogTemp, Warning, TEXT("[InventoryItemWidget] Item %s has no icon!"), *Item->ItemID.ToString());
     }
 
     //ItemData = Item;

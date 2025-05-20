@@ -29,9 +29,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Item")
 	TSubclassOf<UItemBase> ItemClass;
 
-	UPROPERTY(ReplicatedUsing = OnRep_ItemData)
+	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	FName ItemID;
-	UPROPERTY(ReplicatedUsing = OnRep_ItemData)
+	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	int32 Quantity;
 
 	UPROPERTY(Replicated)
@@ -41,6 +41,10 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void OnRep_IsPickedUp();
+
+	// Functie apelata cand jucatorul colecteaza itemul
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_DestroyItem();
 
 	// Data pentru interactiune
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup")
