@@ -32,3 +32,12 @@ void UInventoryItemWidget::InitItem(UItemBase* Item)
 }
 
 
+
+void UInventoryItemWidget::NativePreConstruct()
+{
+    Super::NativePreConstruct();
+
+    SetDesiredSizeInViewport(FVector2D(64.f, 64.f));
+}
+
+

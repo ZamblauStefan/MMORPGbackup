@@ -2,10 +2,12 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+//#include "ItemDataStructs.h"
 #include "InventoryComponent.generated.h"
 
 class UItemBase;
 class AItemPickup;
+struct FItemData;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class MMORPG_API UInventoryComponent : public UActorComponent
@@ -42,6 +44,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	TArray<UItemBase*> GetItems() const { return Items; }
+
+	UFUNCTION(Client, Reliable)
+	void Client_AddItem(const FItemData& ItemRow, int32 Quantity);
+
 /*
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool RemoveItem(FName ItemID, int32 Quantity = 1);

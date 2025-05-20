@@ -2076,14 +2076,7 @@ void AThirdPersonMPCharacter::LevelUp()
 
 UInventoryPanel* AThirdPersonMPCharacter::GetInventoryPanel() const
 {
-	if (APlayerController* PC = GetController<APlayerController>())
-	{
-		if (UBasicHUD* HUD_2 = Cast<UBasicHUD>(PC->GetHUD()))
-		{
-			return HUD_2->InventoryPanel;
-		}
-	}
-	return nullptr;
+	return InventoryPanel;
 }
 
 void AThirdPersonMPCharacter::SetupInventoryConnection()

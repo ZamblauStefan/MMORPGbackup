@@ -3,6 +3,7 @@
 #include "InventoryComponent.h"
 #include "ItemBase.h"
 #include "ItemPickup.h"
+#include "ItemDataStructs.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -16,6 +17,51 @@ UInventoryComponent::UInventoryComponent()
 	//SetIsReplicatedByDefault(true);
 
 	// ...
+}
+
+void UInventoryComponent::Client_AddItem_Implementation(const FItemData& ItemRow, int32 Quantity)
+{
+	UItemBase* NewItem = NewObject<UItemBase>(this);
+
+	NewItem->Quantity = Quantity;
+	NewItem->ItemID = ItemRow.ItemID;
+	NewItem->OwningInventory = this;
+	NewItem->ItemType = ItemRow.ItemType;
+	NewItem->ItemQuality = ItemRow.ItemQuality;
+	NewItem->ItemStatistics = ItemRow.ItemStatistics;
+	NewItem->TextData = ItemRow.TextData;
+	NewItem->NumericData = ItemRow.NumericData;
+	NewItem->AssetData = ItemRow.AssetData;
+	NewItem->LevelRequirement = ItemRow.LevelRequirement;
+	NewItem->Tags = ItemRow.Tags;
+	NewItem->SpawnableActorClass = ItemRow.SpawnableActorClass;
+	NewItem->MaxDurability = ItemRow.MaxDurability;
+	NewItem->Cooldown = ItemRow.Cooldown;
+	NewItem->OnUse = ItemRow.OnUse;
+
+	// verificare is Stackable
+
+	if (NewItem->NumericData.bIsStackable)
+	{
+		for (UItemBase* ExistingItem : Items)
+		{
+			if (ExistingItem && ExistingItem->ItemID == NewItem->ItemID)
+			{
+				ExistingItem->Quantity += NewItem->Quantity;
+				UE_LOG(LogTemp, Warning, TEXT("[InventoryComponent] Stackat %s. Cantitate nouă: %d"), *NewItem->ItemID.ToString(), ExistingItem->Quantity);
+
+				OnInventoryUpdated.Broadcast(Items);
+				return;
+			}
+			
+		}
+	}
+
+		Items.Add(NewItem);
+		OnInventoryUpdated.Broadcast(Items);
+
+
+	UE_LOG(LogTemp, Warning, TEXT("[Client_AddItem] Adaug itemul %s cu cantitatea %d (Client-side)."), *ItemRow.ItemID.ToString(), Quantity);
 }
 
 bool UInventoryComponent::AddItem(UItemBase* Item)

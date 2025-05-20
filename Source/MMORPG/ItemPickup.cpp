@@ -15,12 +15,15 @@ AItemPickup::AItemPickup()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	//PrimaryActorTick.bCanEverTick = true;
-	//SetReplicates(true);
+	SetReplicates(true);
+	SetReplicateMovement(true);
+	bReplicates = true;
 
 	CollisionSphere = CreateDefaultSubobject<USphereComponent>("CollisionSphere");
 	RootComponent = CollisionSphere;
 	CollisionSphere->SetCollisionProfileName("OverlapAllDynamic");
 
+	CollisionSphere->SetSphereRadius(150.0f);
 }
 
 void AItemPickup::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -74,24 +77,25 @@ void AItemPickup::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActo
 						UE_LOG(LogTemp, Error, TEXT("[ItemPickup] Row NOT found!"));
 					}
 
+					
 					// adaugam item in inventory
-					if (Inventory->AddItem(NewItem))
-					{
-						if (Player->GetInventoryPanel())
-						{
-							Player->GetInventoryPanel()->RefreshInventory(Inventory->GetItems());
-						}
 						bIsPickedUp = true;
 						
+						if (Row && Player->GetLocalRole() == ROLE_Authority)
+						{
+							if (APlayerController* PC = Cast<APlayerController>(Player->GetController()))
+							{
+								Inventory->Client_AddItem(*Row, Quantity);
+							}
+						}
 
+						
 						// Distruge itemul din lume
-						//if (GetOwner()->HasAuthority())
-							Multicast_DestroyItem();
-				
-
+						
+						//Multicast_DestroyItem();
 						//SetLifeSpan(0.2f);
-						//Destroy();
-					}
+
+						Destroy();
 				}
 			}
 		}

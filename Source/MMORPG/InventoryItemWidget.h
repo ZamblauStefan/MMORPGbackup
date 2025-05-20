@@ -26,6 +26,8 @@ public:
     UFUNCTION(BlueprintCallable)
     void InitItem(UItemBase* Item);
 
+    virtual void NativePreConstruct() override;
+
 protected:
     UPROPERTY(meta = (BindWidget))
     UImage* ItemIcon;

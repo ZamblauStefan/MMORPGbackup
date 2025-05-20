@@ -40,11 +40,15 @@ public:
 	// Functie pentru replicare
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	//UFUNCTION(Server, Reliable)
+	//void ServerHandleOverlap(AThirdPersonMPCharacter* Character);
+
 	void OnRep_IsPickedUp();
 
 	// Functie apelata cand jucatorul colecteaza itemul
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_DestroyItem();
+
 
 	// Data pentru interactiune
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup")
