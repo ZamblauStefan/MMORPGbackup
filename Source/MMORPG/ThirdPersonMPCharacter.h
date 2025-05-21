@@ -129,7 +129,22 @@ public:
 	void RemoveBuff(const FName BuffName);
 	UFUNCTION()
 	void FlushDirtyStats();
+	
+	///////////////////////////////////////////////////
+	// Combat System
+	// 
+	// Sword Attack Anim Montage
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	UAnimMontage* SwordAttackMontage;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* BasicAttack;
+
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void MeleeAttack();
+
+	// Combat System
+	///////////////////////////////////////////////////
 protected:
 
 	// lista buffs si debuffs

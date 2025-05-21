@@ -20,6 +20,7 @@
 #include "ItemBase.h"
 #include "ItemPickup.h"
 #include "InventoryPanel.h"
+#include "Kismet/GameplayStatics.h"
 
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -176,6 +177,9 @@ void AThirdPersonMPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		// Interact Binding "R" key for now
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AThirdPersonMPCharacter::BeginInteract);
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &AThirdPersonMPCharacter::EndInteract);
+
+		// Input for combat BasicAttacks (left click)
+		EnhancedInputComponent->BindAction(BasicAttack, ETriggerEvent::Started, this, &AThirdPersonMPCharacter::MeleeAttack);
 
 
 	}
@@ -2202,6 +2206,43 @@ void AThirdPersonMPCharacter::BeginPlay()
 		UE_LOG(LogTemp, Error, TEXT("[ThirdPersonMPCharacter] InventoryComponent este NULL!"));
 	}
 }
+
+/////////////////////////////////////////////////////////////
+// Combat System
+
+void AThirdPersonMPCharacter::MeleeAttack()
+{
+	if (SwordAttackMontage && !GetMesh()->GetAnimInstance()->Montage_IsPlaying(SwordAttackMontage))
+	{
+		PlayAnimMontage(SwordAttackMontage);
+
+		FVector Start = GetActorLocation();
+		FVector Forward = GetActorForwardVector();
+		FVector End = Start + Forward * 150.0f;
+
+		FHitResult Hit;
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+
+		bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Pawn, Params);
+
+		if (bHit && Hit.GetActor())
+		{
+			AActor* HitActor = Hit.GetActor();
+			UGameplayStatics::ApplyDamage(HitActor, PhysicalAttack, GetController(), this, nullptr);
+		}
+
+		//UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticle, Hit.ImpactPoint);
+		//UGameplayStatics::PlaySoundAtLocation(this, SwordHitSound, GetActorLocation());
+
+
+	}
+}
+
+// Combat System
+/////////////////////////////////////////////////////////////
+
+
 
 /*
 // Called every frame

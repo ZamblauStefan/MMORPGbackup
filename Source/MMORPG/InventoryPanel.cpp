@@ -38,6 +38,8 @@ void UInventoryPanel::RefreshInventory(const TArray<class UItemBase*>& Items)
 		if (UInventoryItemWidget* ItemWidget = CreateWidget<UInventoryItemWidget>(this, ItemWidgetClass))
 		{
 			ItemWidget->InitItem(Item);
+			// dimensiune slot 
+			ItemWidget->SetDesiredSizeInViewport(FVector2D(64.f, 64.f));
 
 			if (UUniformGridSlot* GridSlot = GridPanel->AddChildToUniformGrid(ItemWidget, Row, Column))
 			{
