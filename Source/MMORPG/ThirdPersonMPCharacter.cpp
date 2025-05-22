@@ -1535,12 +1535,6 @@ void AThirdPersonMPCharacter::SetLuck(int statValue)
 	}
 }
 
-float AThirdPersonMPCharacter::TakeDamage(float DamageTaken, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
-{
-	float NewCurrentHealth = CurrentHealth - DamageTaken;
-	SetCurrentHealth(NewCurrentHealth);
-	return NewCurrentHealth;
-}
 
 bool AThirdPersonMPCharacter::ConsumeMana(float ManaCost)
 {
@@ -2237,6 +2231,16 @@ void AThirdPersonMPCharacter::MeleeAttack()
 
 
 	}
+}
+
+
+float AThirdPersonMPCharacter::TakeDamage(float DamageTaken, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float NewCurrentHealth = CurrentHealth - DamageTaken;
+	SetCurrentHealth(NewCurrentHealth);
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("HP: %f"), CurrentHealth));
+
+	return NewCurrentHealth;
 }
 
 // Combat System
