@@ -189,8 +189,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Character | Interaction")
 	TScriptInterface<IInteractionInterface> TargetInteractable;
 
-	UPROPERTY()
-	AMainHUD* HUD;
+	//UPROPERTY()
+	//AMainHUD* HUD;
+
+
 
 	float InteractionCheckFrequency;
 
@@ -896,6 +898,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Progression")
 	void GainEXP(int32 Amount);
+	UFUNCTION()
+	void OnEXPChanged();
 
 	// Functie de expunere a componentei 
 	FORCEINLINE ULifeSkillsComponent* GetLifeSkillsComponent() const { return LifeSkillsComp; }

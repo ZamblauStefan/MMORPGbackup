@@ -31,16 +31,7 @@ void UBasicHUD::ToggleCharacterDetails()
 		);
 
 }
-/*
-void UBasicHUD::InitializeInventory(UInventoryComponent* PlayerInventory)
-{
-	if (InventoryPanel)
-	{
-		InventoryPanel->BindToInventory(PlayerInventory);
-		return;
-	}
-}
-*/
+
 void UBasicHUD::ToggleInventory()
 {
 	if (!InventoryPanel)

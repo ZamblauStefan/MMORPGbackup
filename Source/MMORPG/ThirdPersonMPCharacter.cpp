@@ -2051,12 +2051,17 @@ void AThirdPersonMPCharacter::GainEXP(int32 Amount)
 	}
 	// DEBUG
 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, FString::Printf(TEXT("EXP: %d"), CurrentEXP));
-
+	OnEXPChanged();
 	OnRep_CurrentEXP(); // update pentru server local
 	OnRep_EXPToNextLevel();
 	OnRep_Level();
 
 	// Update UI
+
+}
+
+void AThirdPersonMPCharacter::OnEXPChanged()
+{
 
 }
 
@@ -2158,7 +2163,8 @@ void AThirdPersonMPCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	HUD = Cast<AMainHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
+	//HUD = Cast<AMainHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
+
 
 	// Legatura intre componenta si UI
 	if (UInventoryComponent* InvComp = GetInventoryComponent())
