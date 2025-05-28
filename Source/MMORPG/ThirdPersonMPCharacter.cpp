@@ -571,6 +571,12 @@ void AThirdPersonMPCharacter::GetLifetimeReplicatedProps(TArray <FLifetimeProper
 	DOREPLIFETIME_CONDITION(AThirdPersonMPCharacter,Wisdom,COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(AThirdPersonMPCharacter,Luck,COND_OwnerOnly);
 
+	// replicated exp
+	DOREPLIFETIME(AThirdPersonMPCharacter, CurrentEXP);
+	DOREPLIFETIME(AThirdPersonMPCharacter, EXPToNextLevel);
+	DOREPLIFETIME(AThirdPersonMPCharacter, Level);
+
+
 }
 
 
@@ -869,7 +875,11 @@ void AThirdPersonMPCharacter::OnMagicalDefenseUpdate()
 }
 void AThirdPersonMPCharacter::OnStrengthUpdate()
 {
-	// nothing yet
+	if (IsLocallyControlled())
+	{
+		FString strText = FString::Printf(TEXT("Strength updated: %d"), Strength);
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Cyan, strText);
+	}
 }
 void AThirdPersonMPCharacter::OnConstitutionUpdate()
 {
@@ -1501,6 +1511,7 @@ void AThirdPersonMPCharacter::SetStrength(int statValue)
 	{
 		Strength = statValue;
 	}
+	
 }
 void AThirdPersonMPCharacter::SetConstitution(int statValue)
 {
@@ -1508,6 +1519,8 @@ void AThirdPersonMPCharacter::SetConstitution(int statValue)
 	{
 		Constitution = statValue;
 	}
+
+
 }
 void AThirdPersonMPCharacter::SetIntelligence(int statValue)
 {
@@ -1515,6 +1528,7 @@ void AThirdPersonMPCharacter::SetIntelligence(int statValue)
 	{
 		Intelligence = statValue;
 	}
+
 }
 void AThirdPersonMPCharacter::SetDexterity(int statValue)
 {
@@ -1522,6 +1536,7 @@ void AThirdPersonMPCharacter::SetDexterity(int statValue)
 	{
 		Dexterity = statValue;
 	}
+
 }
 void AThirdPersonMPCharacter::SetWisdom(int statValue)
 {
@@ -1529,6 +1544,7 @@ void AThirdPersonMPCharacter::SetWisdom(int statValue)
 	{
 		Wisdom = statValue;
 	}
+
 }
 void AThirdPersonMPCharacter::SetLuck(int statValue)
 {
@@ -1536,6 +1552,7 @@ void AThirdPersonMPCharacter::SetLuck(int statValue)
 	{
 		Luck = statValue;
 	}
+
 }
 
 
@@ -1745,6 +1762,8 @@ void AThirdPersonMPCharacter::UpdateMagicalDefense()
 
 	SetMagicalDefense(NewMagicalDefense);
 }
+
+
 void AThirdPersonMPCharacter::UpdateStrength()
 {
 	float NewStrength = BaseStrength;
@@ -1754,6 +1773,7 @@ void AThirdPersonMPCharacter::UpdateStrength()
 				NewStrength += Mod.Amount;
 
 	SetStrength(NewStrength);
+	UpdatePhysicalAttack();
 }
 void AThirdPersonMPCharacter::UpdateConstitution()
 {
@@ -2032,6 +2052,36 @@ void AThirdPersonMPCharacter::GainEXP(int32 Amount)
 	// DEBUG
 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, FString::Printf(TEXT("EXP: %d"), CurrentEXP));
 
+	OnRep_CurrentEXP(); // update pentru server local
+	OnRep_EXPToNextLevel();
+	OnRep_Level();
+
+	// Update UI
+
+}
+
+void AThirdPersonMPCharacter::OnRep_CurrentEXP()
+{
+	if (IsLocallyControlled())
+	{
+		// notificare UI
+	}
+}
+
+void AThirdPersonMPCharacter::OnRep_EXPToNextLevel()
+{
+	if (IsLocallyControlled())
+	{
+		// notificare UI
+	}
+}
+
+void AThirdPersonMPCharacter::OnRep_Level()
+{
+	if (IsLocallyControlled())
+	{
+		// notificare UI
+	}
 }
 
 void AThirdPersonMPCharacter::LevelUp()

@@ -244,6 +244,7 @@ float AEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 	// identificam cine a cauzat damage-ul
 	ACharacter* DamagerCharacter = nullptr;
 
+
 	if (EventInstigator)
 	{
 		DamagerCharacter = Cast<ACharacter>(EventInstigator->GetPawn());
@@ -258,8 +259,6 @@ float AEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 		AddTaunt(DamagerCharacter, DamageAmount);
 	}
 
-	RegisterExpContribution(EventInstigator, DamageAmount);
-
 	HealthUpdate();
 	return DamageAmount;
 }
@@ -269,14 +268,14 @@ void AEnemyBase::Die()
 	// animatie si efect
 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("Enemy Dead!")));
 
-	for (const FExpContribution& Entry : ExpContributors)
+	for (const FTauntData& Entry : TauntedPlayers)
 	{
-		if (Entry.Player && Entry.DamageDone > 0.f)
+		if (Entry.PlayerRef && Entry.TotalDamage > 0.f)
 		{
-			AThirdPersonMPCharacter* PlayerCharacter = Cast<AThirdPersonMPCharacter>(Entry.Player->GetPawn());
-			if (PlayerCharacter)
+			AThirdPersonMPCharacter* PC = Cast<AThirdPersonMPCharacter>(Entry.PlayerRef);
+			if (PC)
 			{
-				PlayerCharacter->GainEXP(ExperienceGiven);
+				PC->GainEXP(ExperienceGiven);
 			}
 		}
 	}
@@ -296,6 +295,7 @@ void AEnemyBase::AddTaunt(ACharacter* Damager, float Amount)
 		{
 			Entry.TauntValue += Amount;
 			Entry.LastDamageTime = CurrentTime;
+			Entry.TotalDamage += Amount;
 			return;
 		}
 	}
@@ -305,6 +305,7 @@ void AEnemyBase::AddTaunt(ACharacter* Damager, float Amount)
 	NewEntry.PlayerRef = Damager;
 	NewEntry.TauntValue = Amount;
 	NewEntry.LastDamageTime = CurrentTime;
+	NewEntry.TotalDamage = Amount;
 	TauntedPlayers.Add(NewEntry);
 }
 
@@ -345,28 +346,6 @@ void AEnemyBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 void AEnemyBase::OnRep_CurrentHealth()
 {
 	HealthUpdate(); 
-}
-
-
-void AEnemyBase::RegisterExpContribution(AController* DamageInstigator, float Damage)
-{
-	APlayerController* PC = Cast<APlayerController>(DamageInstigator);
-	if (!PC) return;
-
-	for (FExpContribution& Entry : ExpContributors)
-	{
-		if (Entry.Player == PC)
-		{
-			Entry.DamageDone += Damage;
-			return;
-		}
-	}
-
-	// adaugam prima data
-	FExpContribution NewEntry;
-	NewEntry.Player = PC;
-	NewEntry.DamageDone = Damage;
-	ExpContributors.Add(NewEntry);
 }
 
 

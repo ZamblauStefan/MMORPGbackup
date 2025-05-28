@@ -18,19 +18,8 @@ struct FTauntData
 	UPROPERTY()
 	float LastDamageTime = 0.f; // last time damage
 
-
-};
-
-USTRUCT()
-struct FExpContribution
-{
-	GENERATED_BODY()
-
 	UPROPERTY()
-	APlayerController* Player = nullptr;
-
-	UPROPERTY()
-	float DamageDone = 0.f;
+	float TotalDamage = 0.f;
 };
 
 
@@ -59,9 +48,6 @@ protected:
 
 public:	
 
-
-	UPROPERTY()
-	TArray<FExpContribution> ExpContributors;
 
 	UPROPERTY()
 	TArray<AActor*> Hostiles;
@@ -100,8 +86,6 @@ public:
 
 	UFUNCTION()
 	void OnRep_CurrentHealth();
-
-	void RegisterExpContribution(AController* Instigator, float Damage);
 
 	bool bInitializedHealthBar = false;
 

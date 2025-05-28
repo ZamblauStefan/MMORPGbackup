@@ -377,15 +377,21 @@ protected:
 	ULifeSkillsComponent* LifeSkillsComp;
 
 	// Current experience and level
-	UPROPERTY(Replicated, BlueprintReadWrite, Category = "Progression")
+	UPROPERTY(ReplicatedUsing = OnRep_Level, BlueprintReadWrite, Category = "Progression")
 	int32 Level = 1;
 	UPROPERTY(Replicated, BlueprintReadWrite, Category = "Progression")
 	int32 AvailableStatPoints = 0;
-	UPROPERTY(Replicated, BlueprintReadWrite, Category = "Progression")
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentEXP, BlueprintReadWrite, Category = "Progression")
 	int32 CurrentEXP = 0;
-	UPROPERTY(Replicated, BlueprintReadWrite, Category = "Progression")
+	UPROPERTY(ReplicatedUsing = OnRep_EXPToNextLevel, BlueprintReadWrite, Category = "Progression")
 	int32 EXPToNextLevel = 100;
 
+	UFUNCTION()
+	void OnRep_CurrentEXP();
+	UFUNCTION()
+	void OnRep_EXPToNextLevel();
+	UFUNCTION()
+	void OnRep_Level();
 
 
 	/* RepNotify for Base Stats*/
