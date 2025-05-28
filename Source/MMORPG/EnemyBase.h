@@ -4,6 +4,36 @@
 #include "GameFramework/Character.h"
 #include "EnemyBase.generated.h"
 
+USTRUCT()
+struct FTauntData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	ACharacter* PlayerRef;
+
+	UPROPERTY()
+	float TauntValue = 0.f;
+
+	UPROPERTY()
+	float LastDamageTime = 0.f; // last time damage
+
+
+};
+
+USTRUCT()
+struct FExpContribution
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	APlayerController* Player = nullptr;
+
+	UPROPERTY()
+	float DamageDone = 0.f;
+};
+
+
 UCLASS()
 class MMORPG_API AEnemyBase : public ACharacter
 {
@@ -20,10 +50,24 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy Stats")
 	float MaxHealth = 100.0f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Enemy Stats")
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth, EditAnywhere, BlueprintReadWrite, Category = "Health")
 	float CurrentHealth;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	int32 ExperienceGiven = 50;
+
+
 public:	
+
+
+	UPROPERTY()
+	TArray<FExpContribution> ExpContributors;
+
+	UPROPERTY()
+	TArray<AActor*> Hostiles;
+
+	void NotifyActorBeginOverlap(AActor* OtherActor) override;
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -35,5 +79,31 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Enemy")
 	void Die();
+
+	void AddTaunt(ACharacter* Damager, float Amount);
+
+	void HealthUpdate();
 	
+	UPROPERTY()
+	TArray<FTauntData> TauntedPlayers;
+
+	float TauntResetTime = 10.0f; // secunde pana se reseteaza agro
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
+	class UWidgetComponent* HealthBarWidget;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
+	FText EnemyDisplayName = FText::FromString("Enemy");
+
+	UFUNCTION()
+	void OnRep_CurrentHealth();
+
+	void RegisterExpContribution(AController* Instigator, float Damage);
+
+	bool bInitializedHealthBar = false;
+
+
 };

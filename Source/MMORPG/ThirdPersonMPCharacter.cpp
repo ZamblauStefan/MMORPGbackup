@@ -180,6 +180,9 @@ void AThirdPersonMPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 
 		// Input for combat BasicAttacks (left click)
 		EnhancedInputComponent->BindAction(BasicAttack, ETriggerEvent::Started, this, &AThirdPersonMPCharacter::MeleeAttack);
+		// Input for mouse visibility toggle
+		EnhancedInputComponent->BindAction(MouseVisibility, ETriggerEvent::Started, this, &AThirdPersonMPCharacter::ToggleMouseVisibility);
+
 
 
 	}
@@ -2026,12 +2029,17 @@ void AThirdPersonMPCharacter::GainEXP(int32 Amount)
 		LevelUp();
 		EXPToNextLevel = FMath::RoundToInt(EXPToNextLevel * 1.2f); // +20% per level
 	}
+	// DEBUG
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, FString::Printf(TEXT("EXP: %d"), CurrentEXP));
+
 }
 
 void AThirdPersonMPCharacter::LevelUp()
 {
 	Level++;
 	AvailableStatPoints += 7;
+
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, FString::Printf(TEXT(" Congratz you reached a new Level!!!")));
 
 	// base stats increase
 	BaseMaxHealth += 20.f;
@@ -2200,6 +2208,33 @@ void AThirdPersonMPCharacter::BeginPlay()
 		UE_LOG(LogTemp, Error, TEXT("[ThirdPersonMPCharacter] InventoryComponent este NULL!"));
 	}
 }
+
+////////////////////
+// Show Mouse
+void AThirdPersonMPCharacter::ToggleMouseVisibility()
+{
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		bIsMouseVisible = !bIsMouseVisible;
+
+		if (bIsMouseVisible)
+		{
+			PC->bShowMouseCursor = true;
+
+			FInputModeGameAndUI InputMode;
+			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+			InputMode.SetHideCursorDuringCapture(false);
+			PC->SetInputMode(InputMode);
+		}
+		else
+		{
+			PC->bShowMouseCursor = false;
+			PC->SetInputMode(FInputModeGameOnly());
+		}
+	}
+}
+
+
 
 /////////////////////////////////////////////////////////////
 // Combat System

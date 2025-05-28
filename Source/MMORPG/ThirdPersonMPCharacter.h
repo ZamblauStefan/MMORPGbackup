@@ -101,6 +101,14 @@ class MMORPG_API AThirdPersonMPCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* InteractAction;
 
+	// Show/Hide mouse
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* MouseVisibility;
+
+	// BasicAttack
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* BasicAttack;
+
 	UPROPERTY()
 	UInventoryPanel* InventoryPanel;
 
@@ -129,6 +137,13 @@ public:
 	void RemoveBuff(const FName BuffName);
 	UFUNCTION()
 	void FlushDirtyStats();
+
+	// show mouse - toggle
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
+	bool bIsMouseVisible = false;
+	UFUNCTION()
+	void ToggleMouseVisibility();
+
 	
 	///////////////////////////////////////////////////
 	// Combat System
@@ -137,8 +152,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	UAnimMontage* SwordAttackMontage;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* BasicAttack;
 
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void MeleeAttack();
@@ -875,6 +888,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	float TakeDamage(float DamageTaken, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
+	UFUNCTION(BlueprintCallable, Category = "Progression")
+	void GainEXP(int32 Amount);
 
 	// Functie de expunere a componentei 
 	FORCEINLINE ULifeSkillsComponent* GetLifeSkillsComponent() const { return LifeSkillsComp; }
@@ -900,8 +915,6 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Gameplay")
 	void StopFire();
 
-	UFUNCTION(BlueprintCallable, Category = "Progression")
-	void GainEXP(int32 Amount);
 	UFUNCTION(BlueprintCallable, Category = "Progression")
 	void LevelUp();
 
