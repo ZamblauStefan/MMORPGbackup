@@ -169,7 +169,7 @@ public:
 	void MeleeAttack_Internal();
 
 	UFUNCTION(NetMulticast, Unreliable)
-	void Multicast_PlayAttackMontage(UAnimMontage* MontageToPlay);
+	void Multicast_PlayAttackMontage();
 
 
 
@@ -914,6 +914,9 @@ public:
 	float TakeDamage(float DamageTaken, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 	void EquipWeapon(TSubclassOf<AWeaponBase> WeaponClass);
+
+	void DisableCharacterMovement();
+	void EnableCharacterMovement();
 
 	UFUNCTION(BlueprintCallable, Category = "Progression")
 	void GainEXP(int32 Amount);

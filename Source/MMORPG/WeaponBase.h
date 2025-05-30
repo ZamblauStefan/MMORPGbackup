@@ -17,6 +17,8 @@ public:
 
 	UPROPERTY(VisibleAnywhere)
 	USkeletalMeshComponent* WeaponMesh;
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	UAnimMontage* AttackMontage;
 
 protected:
 	// Called when the game starts or when spawned

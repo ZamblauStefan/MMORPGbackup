@@ -2319,9 +2319,8 @@ void AThirdPersonMPCharacter::MeleeAttack()
 
 void AThirdPersonMPCharacter::ServerMeleeAttack_Implementation()
 {
-	Multicast_PlayAttackMontage(AttackMontage);
 	MeleeAttack_Internal();
-
+	Multicast_PlayAttackMontage();
 }
 
 void AThirdPersonMPCharacter::MeleeAttack_Internal()
@@ -2389,14 +2388,40 @@ void AThirdPersonMPCharacter::EquipWeapon(TSubclassOf<AWeaponBase> NewWeaponClas
 }
 
 
-void AThirdPersonMPCharacter::Multicast_PlayAttackMontage_Implementation(UAnimMontage* MontageToPlay)
+void AThirdPersonMPCharacter::Multicast_PlayAttackMontage_Implementation()
 {
-	if (MontageToPlay && GetMesh() && GetMesh()->GetAnimInstance())
+	if (EquippedWeapon || EquippedWeapon->AttackMontage)
 	{
-		GetMesh()->GetAnimInstance()->Montage_Play(MontageToPlay);
+		// disable character movement
+		DisableCharacterMovement();
+
+		float AnimDuration = PlayAnimMontage(EquippedWeapon->AttackMontage);
+	
+		// enable character movement
+		if (AnimDuration > 0.0f)
+		{
+			FTimerHandle TimerHandle;
+			GetWorldTimerManager().SetTimer(TimerHandle, this, &AThirdPersonMPCharacter::EnableCharacterMovement, AnimDuration, false);
+		}
+
 	}
+
+
+	
+
 }
 
+void AThirdPersonMPCharacter::DisableCharacterMovement()
+{
+	GetCharacterMovement()->DisableMovement();
+	bUseControllerRotationYaw = false;
+}
+
+void AThirdPersonMPCharacter::EnableCharacterMovement()
+{
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	bUseControllerRotationYaw = true;
+}
 
 
 // Combat System
