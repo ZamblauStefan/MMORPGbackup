@@ -2392,23 +2392,24 @@ void AThirdPersonMPCharacter::EquipWeapon(TSubclassOf<AWeaponBase> NewWeaponClas
 
 void AThirdPersonMPCharacter::Multicast_PlayAttackMontage_Implementation()
 {
-	if (EquippedWeapon || EquippedWeapon->AttackMontage)
+	if (EquippedWeapon && EquippedWeapon->AttackMontage)
 	{
 		bCanMove = false;
 		float AnimDuration = PlayAnimMontage(EquippedWeapon->AttackMontage);
 	
 		if (!HasAuthority() || IsLocallyControlled()) 
 		{
-			PlayAnimMontage(EquippedWeapon->AttackMontage);
+			// enable character movement
+			if (AnimDuration > 0.f)
+			{
+				FTimerHandle TimerHandle;
+				GetWorldTimerManager().SetTimer(TimerHandle, this, &AThirdPersonMPCharacter::ResetMovementRestrictions, AnimDuration, false);
+
+			}
+
 		}
 
-		// enable character movement
-		if (AnimDuration > 0.f)
-		{
-			FTimerHandle TimerHandle;
-			GetWorldTimerManager().SetTimer(TimerHandle, this, &AThirdPersonMPCharacter::ResetMovementRestrictions, AnimDuration, false);
 
-		}
 
 	}
 

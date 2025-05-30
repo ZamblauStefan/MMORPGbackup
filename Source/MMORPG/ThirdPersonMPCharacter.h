@@ -168,7 +168,7 @@ public:
 	UFUNCTION(Category = "Combat")
 	void MeleeAttack_Internal();
 
-	UFUNCTION(NetMulticast, Unreliable)
+	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_PlayAttackMontage();
 
 
@@ -930,7 +930,7 @@ public:
 	UFUNCTION()
 	void OnEXPChanged();
 
-	UPROPERTY(BlueprintReadWrite, Category = "Combat")
+	UPROPERTY(Replicated, BlueprintReadWrite, Category = "Combat")
 	bool bCanMove = true;
 
 	UFUNCTION(BlueprintPure)
