@@ -195,6 +195,7 @@ void AThirdPersonMPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 
 void AThirdPersonMPCharacter::Move(const FInputActionValue& Value)
 {
+
 	if (!bCanMove) return;
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
@@ -2320,8 +2321,8 @@ void AThirdPersonMPCharacter::MeleeAttack()
 
 void AThirdPersonMPCharacter::ServerMeleeAttack_Implementation()
 {
-	MeleeAttack_Internal();
-	Multicast_PlayAttackMontage();
+	MeleeAttack_Internal(); // logica de damage
+	Multicast_PlayAttackMontage(); // animatie + restrictie movement
 }
 
 void AThirdPersonMPCharacter::MeleeAttack_Internal()
