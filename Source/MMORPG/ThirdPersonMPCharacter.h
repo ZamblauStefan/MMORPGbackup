@@ -25,6 +25,7 @@ struct FInputActionValue;
 class AMainHUD;
 class AItemPickup;
 class UInventoryPanel;
+class AWeaponBase;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
@@ -152,9 +153,25 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	UAnimMontage* SwordAttackMontage;
 
+	UPROPERTY()
+	AWeaponBase* EquippedWeapon;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat")
+	TSubclassOf<AWeaponBase> WeaponClass;
 
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void MeleeAttack();
+
+	UFUNCTION(Server, Reliable)
+	void ServerMeleeAttack();
+
+	UFUNCTION(Category = "Combat")
+	void MeleeAttack_Internal();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_PlayAttackMontage(UAnimMontage* MontageToPlay);
+
+
 
 	// Combat System
 	///////////////////////////////////////////////////
@@ -892,14 +909,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Mana")
 	bool ConsumeMana(float ManaCost);
 
-	/* Event for taking damage. Overridden from APawn. */
+	/* Event for taking damage. Overritten from APawn. */
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	float TakeDamage(float DamageTaken, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	void EquipWeapon(TSubclassOf<AWeaponBase> WeaponClass);
 
 	UFUNCTION(BlueprintCallable, Category = "Progression")
 	void GainEXP(int32 Amount);
 	UFUNCTION()
 	void OnEXPChanged();
+
+	UFUNCTION(BlueprintPure)
+	float GetEXPPercent() const;
 
 	// Functie de expunere a componentei 
 	FORCEINLINE ULifeSkillsComponent* GetLifeSkillsComponent() const { return LifeSkillsComp; }

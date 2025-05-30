@@ -21,6 +21,7 @@
 #include "ItemPickup.h"
 #include "InventoryPanel.h"
 #include "Kismet/GameplayStatics.h"
+#include "WeaponBase.h"
 
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -307,7 +308,7 @@ void AThirdPersonMPCharacter::FoundInteractable(AActor* NewInteractable)
 	InteractionData.CurrentInteractable = NewInteractable;
 	TargetInteractable = NewInteractable;
 
-	HUD->UpdateInteractionWidget(&TargetInteractable->InteractableData);
+	//HUD->UpdateInteractionWidget(&TargetInteractable->InteractableData);
 
 	TargetInteractable->BeginFocus();
 
@@ -327,7 +328,7 @@ void AThirdPersonMPCharacter::NoInteractableFound()
 			TargetInteractable->EndFocus();
 		}
 
-		HUD->HideInteractionWidget();
+		//HUD->HideInteractionWidget();
 
 		InteractionData.CurrentInteractable = nullptr;
 		TargetInteractable = nullptr;
@@ -2051,6 +2052,7 @@ void AThirdPersonMPCharacter::GainEXP(int32 Amount)
 	}
 	// DEBUG
 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, FString::Printf(TEXT("EXP: %d"), CurrentEXP));
+
 	OnEXPChanged();
 	OnRep_CurrentEXP(); // update pentru server local
 	OnRep_EXPToNextLevel();
@@ -2058,6 +2060,12 @@ void AThirdPersonMPCharacter::GainEXP(int32 Amount)
 
 	// Update UI
 
+}
+
+float AThirdPersonMPCharacter::GetEXPPercent() const
+{
+	if (EXPToNextLevel == 0) return 0.f;
+	return static_cast<float>(CurrentEXP) / static_cast<float>(EXPToNextLevel);
 }
 
 void AThirdPersonMPCharacter::OnEXPChanged()
@@ -2163,8 +2171,6 @@ void AThirdPersonMPCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//HUD = Cast<AMainHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
-
 
 	// Legatura intre componenta si UI
 	if (UInventoryComponent* InvComp = GetInventoryComponent())
@@ -2210,7 +2216,6 @@ void AThirdPersonMPCharacter::BeginPlay()
 		FlushDirtyStats();
 	}
 	
-
 	if (APlayerController* PC = Cast<APlayerController>(GetController()))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Sub =
@@ -2263,6 +2268,10 @@ void AThirdPersonMPCharacter::BeginPlay()
 	{
 		UE_LOG(LogTemp, Error, TEXT("[ThirdPersonMPCharacter] InventoryComponent este NULL!"));
 	}
+
+
+	EquipWeapon(WeaponClass);
+
 }
 
 ////////////////////
@@ -2297,8 +2306,30 @@ void AThirdPersonMPCharacter::ToggleMouseVisibility()
 
 void AThirdPersonMPCharacter::MeleeAttack()
 {
+	if (!HasAuthority())
+	{
+		ServerMeleeAttack(); // client fara autoritate -> cere serverului sa ii deie voie sa atace
+		return;
+	}
+
+	MeleeAttack_Internal(); // server, ataca direct
+
+
+}
+
+void AThirdPersonMPCharacter::ServerMeleeAttack_Implementation()
+{
+	Multicast_PlayAttackMontage(AttackMontage);
+	MeleeAttack_Internal();
+
+}
+
+void AThirdPersonMPCharacter::MeleeAttack_Internal()
+{
+
 	if (SwordAttackMontage && !GetMesh()->GetAnimInstance()->Montage_IsPlaying(SwordAttackMontage))
 	{
+
 		PlayAnimMontage(SwordAttackMontage);
 
 		FVector Start = GetActorLocation();
@@ -2322,7 +2353,9 @@ void AThirdPersonMPCharacter::MeleeAttack()
 
 
 	}
+	
 }
+
 
 
 float AThirdPersonMPCharacter::TakeDamage(float DamageTaken, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -2333,6 +2366,38 @@ float AThirdPersonMPCharacter::TakeDamage(float DamageTaken, struct FDamageEvent
 
 	return NewCurrentHealth;
 }
+
+void AThirdPersonMPCharacter::EquipWeapon(TSubclassOf<AWeaponBase> NewWeaponClass)
+{
+	if (!NewWeaponClass) return;
+
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->Destroy();
+		EquippedWeapon = nullptr;
+	}
+
+	FActorSpawnParameters Params;
+	Params.Owner = this;
+	Params.Instigator = this;
+
+	EquippedWeapon = GetWorld()->SpawnActor<AWeaponBase>(NewWeaponClass, Params);
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("wep_r"));
+	}
+}
+
+
+void AThirdPersonMPCharacter::Multicast_PlayAttackMontage_Implementation(UAnimMontage* MontageToPlay)
+{
+	if (MontageToPlay && GetMesh() && GetMesh()->GetAnimInstance())
+	{
+		GetMesh()->GetAnimInstance()->Montage_Play(MontageToPlay);
+	}
+}
+
+
 
 // Combat System
 /////////////////////////////////////////////////////////////
