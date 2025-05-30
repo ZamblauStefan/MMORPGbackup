@@ -157,8 +157,8 @@ void AThirdPersonMPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 
 		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AThirdPersonMPCharacter::CustomJump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AThirdPersonMPCharacter::CustomStopJumping);
 
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AThirdPersonMPCharacter::Move);
@@ -195,6 +195,7 @@ void AThirdPersonMPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 
 void AThirdPersonMPCharacter::Move(const FInputActionValue& Value)
 {
+	if (!bCanMove) return;
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -2392,37 +2393,50 @@ void AThirdPersonMPCharacter::Multicast_PlayAttackMontage_Implementation()
 {
 	if (EquippedWeapon || EquippedWeapon->AttackMontage)
 	{
-		// disable character movement
-		DisableCharacterMovement();
-
+		bCanMove = false;
 		float AnimDuration = PlayAnimMontage(EquippedWeapon->AttackMontage);
 	
+		if (!HasAuthority() || IsLocallyControlled()) 
+		{
+			PlayAnimMontage(EquippedWeapon->AttackMontage);
+		}
+
 		// enable character movement
-		if (AnimDuration > 0.0f)
+		if (AnimDuration > 0.f)
 		{
 			FTimerHandle TimerHandle;
-			GetWorldTimerManager().SetTimer(TimerHandle, this, &AThirdPersonMPCharacter::EnableCharacterMovement, AnimDuration, false);
+			GetWorldTimerManager().SetTimer(TimerHandle, this, &AThirdPersonMPCharacter::ResetMovementRestrictions, AnimDuration, false);
+
 		}
 
 	}
 
-
-	
-
 }
 
-void AThirdPersonMPCharacter::DisableCharacterMovement()
+void AThirdPersonMPCharacter::SetCanMove(bool bNewState)
 {
-	GetCharacterMovement()->DisableMovement();
-	bUseControllerRotationYaw = false;
+	bCanMove = bNewState;
 }
-
-void AThirdPersonMPCharacter::EnableCharacterMovement()
+void AThirdPersonMPCharacter::CustomJump()
 {
-	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-	bUseControllerRotationYaw = true;
+	if (!bCanMove) return;
+
+	Jump(); // apeleaza metoda din ACharacter
 }
 
+void AThirdPersonMPCharacter::CustomStopJumping()
+{
+	if (!bCanMove) return;
+
+	StopJumping(); // tot de la ACharacter
+}
+
+
+void AThirdPersonMPCharacter::ResetMovementRestrictions()
+{
+	bCanMove = true;
+
+}
 
 // Combat System
 /////////////////////////////////////////////////////////////

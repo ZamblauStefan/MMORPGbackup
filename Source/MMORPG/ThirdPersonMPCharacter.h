@@ -915,13 +915,23 @@ public:
 
 	void EquipWeapon(TSubclassOf<AWeaponBase> WeaponClass);
 
-	void DisableCharacterMovement();
-	void EnableCharacterMovement();
+	void SetCanMove(bool bNewState);
+
+	UFUNCTION()
+	void CustomJump();
+
+	UFUNCTION()
+	void CustomStopJumping();
+	UFUNCTION()
+	void ResetMovementRestrictions();
 
 	UFUNCTION(BlueprintCallable, Category = "Progression")
 	void GainEXP(int32 Amount);
 	UFUNCTION()
 	void OnEXPChanged();
+
+	UPROPERTY(BlueprintReadWrite, Category = "Combat")
+	bool bCanMove = true;
 
 	UFUNCTION(BlueprintPure)
 	float GetEXPPercent() const;
