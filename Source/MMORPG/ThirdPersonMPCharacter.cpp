@@ -2308,19 +2308,20 @@ void AThirdPersonMPCharacter::ToggleMouseVisibility()
 
 void AThirdPersonMPCharacter::MeleeAttack()
 {
-	if (!HasAuthority())
-	{
-		ServerMeleeAttack(); // client fara autoritate -> cere serverului sa ii deie voie sa atace
-		return;
-	}
+	if (!bCanAttack) return;
+	bCanAttack = false;
 
-	MeleeAttack_Internal(); // server, ataca direct
-
-
+	// pornim timerul
+	GetWorldTimerManager().SetTimer(MeleeAttackCooldownTimer, this, &AThirdPersonMPCharacter::ResetAttackCooldown, MeleeAttackCooldown,	false);
+	// activam atacul efectiv
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Atac permis!"));
+	ServerMeleeAttack();
 }
 
 void AThirdPersonMPCharacter::ServerMeleeAttack_Implementation()
 {
+	if (!HasAuthority()) return;
+
 	MeleeAttack_Internal(); // logica de damage
 	Multicast_PlayAttackMontage(); // animatie + restrictie movement
 }
@@ -2331,7 +2332,7 @@ void AThirdPersonMPCharacter::MeleeAttack_Internal()
 	if (SwordAttackMontage && !GetMesh()->GetAnimInstance()->Montage_IsPlaying(SwordAttackMontage))
 	{
 
-		PlayAnimMontage(SwordAttackMontage);
+		PlayAnimMontage(EquippedWeapon->AttackMontage);
 
 		FVector Start = GetActorLocation();
 		FVector Forward = GetActorForwardVector();
@@ -2349,14 +2350,12 @@ void AThirdPersonMPCharacter::MeleeAttack_Internal()
 			UGameplayStatics::ApplyDamage(HitActor, PhysicalAttack, GetController(), this, nullptr);
 		}
 
-		//UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticle, Hit.ImpactPoint);
-		//UGameplayStatics::PlaySoundAtLocation(this, SwordHitSound, GetActorLocation());
+		
 
 
 	}
 	
 }
-
 
 
 float AThirdPersonMPCharacter::TakeDamage(float DamageTaken, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -2392,12 +2391,15 @@ void AThirdPersonMPCharacter::EquipWeapon(TSubclassOf<AWeaponBase> NewWeaponClas
 
 void AThirdPersonMPCharacter::Multicast_PlayAttackMontage_Implementation()
 {
-	if (!EquippedWeapon && !EquippedWeapon->AttackMontage) return;
+	if (!EquippedWeapon || !EquippedWeapon->AttackMontage) return;
 	
 		bCanMove = false;
-	
-		if (IsLocallyControlled()) 
+
+		if (IsLocallyControlled())
 		{
+			PlayAnimMontage(EquippedWeapon->AttackMontage);
+		}
+		
 			float AnimDuration = PlayAnimMontage(EquippedWeapon->AttackMontage);
 
 			// enable character movement
@@ -2408,9 +2410,8 @@ void AThirdPersonMPCharacter::Multicast_PlayAttackMontage_Implementation()
 
 			}
 
-		}
-
-
+		//UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticle, Hit.ImpactPoint);
+		//UGameplayStatics::PlaySoundAtLocation(this, SwordHitSound, GetActorLocation());
 
 	
 
@@ -2434,6 +2435,10 @@ void AThirdPersonMPCharacter::CustomStopJumping()
 	StopJumping(); // tot de la ACharacter
 }
 
+void AThirdPersonMPCharacter::ResetAttackCooldown()
+{
+	bCanAttack = true;
+}
 
 void AThirdPersonMPCharacter::ResetMovementRestrictions()
 {

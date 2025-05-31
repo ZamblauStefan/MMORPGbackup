@@ -171,6 +171,12 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_PlayAttackMontage();
 
+	// Cooldown
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	float MeleeAttackCooldown = 1.5f; // in secunde
+	bool bCanAttack = true;
+	FTimerHandle MeleeAttackCooldownTimer;
+
 
 
 	// Combat System
@@ -922,6 +928,8 @@ public:
 
 	UFUNCTION()
 	void CustomStopJumping();
+	UFUNCTION()
+	void ResetAttackCooldown();
 	UFUNCTION()
 	void ResetMovementRestrictions();
 
