@@ -137,6 +137,8 @@ public:
 	UFUNCTION()
 	void RemoveBuff(const FName BuffName);
 	UFUNCTION()
+	void UpdateAll();
+	UFUNCTION()
 	void FlushDirtyStats();
 
 	// show mouse - toggle
@@ -152,6 +154,11 @@ public:
 	// Sword Attack Anim Montage
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	UAnimMontage* SwordAttackMontage;
+	UPROPERTY()
+	int32 CurrentComboIndex = 0;
+
+	UPROPERTY()
+	bool bCanDoCombo = false;
 
 	UPROPERTY()
 	AWeaponBase* EquippedWeapon;
@@ -161,6 +168,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void MeleeAttack();
+	UFUNCTION()
+	void PlayAttackSection(int32 Index);
+	UFUNCTION()
+	void EnableCombo();
 
 	UFUNCTION(Server, Reliable)
 	void ServerMeleeAttack();
@@ -173,7 +184,7 @@ public:
 
 	// Cooldown
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
-	float MeleeAttackCooldown = 1.5f; // in secunde
+	float MeleeAttackCooldown = 1.0f; // in secunde
 	bool bCanAttack = true;
 	FTimerHandle MeleeAttackCooldownTimer;
 
@@ -305,6 +316,20 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_BaseLuck, EditAnywhere, BlueprintReadWrite, Category = "Stats")
 	float BaseLuck;
 
+	// base stats add stat points replicated functions
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void ServerAddStrengthPoint();
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void ServerAddConstitutionPoint();
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void ServerAddDexterityPoint();
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void ServerAddIntelligencePoint();
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void ServerAddWisdomPoint();
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void ServerAddLuckPoint();
+
 
 	/* The player's maximum health. This is the highest value of their healt can be.
 	 This value is a value of the player's health, which starts at when spawned */
@@ -404,7 +429,7 @@ protected:
 	// Current experience and level
 	UPROPERTY(ReplicatedUsing = OnRep_Level, BlueprintReadWrite, Category = "Progression")
 	int32 Level = 1;
-	UPROPERTY(Replicated, BlueprintReadWrite, Category = "Progression")
+	UPROPERTY(ReplicatedUsing = OnRep_AvailableStatPoints, BlueprintReadWrite, Category = "Progression")
 	int32 AvailableStatPoints = 0;
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentEXP, BlueprintReadWrite, Category = "Progression")
 	int32 CurrentEXP = 0;
@@ -970,6 +995,9 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "Progression")
 	void LevelUp();
+
+	UFUNCTION()
+	void OnRep_AvailableStatPoints();
 
 	void BeginPlay();
 

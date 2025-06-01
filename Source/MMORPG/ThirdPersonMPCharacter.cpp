@@ -407,38 +407,6 @@ void AThirdPersonMPCharacter::Interact()
 		
 	}
 
-
-
-	/*	
-	if (IsValid(TargetInteractable.GetObject()))
-	{
-		// se verifica daca este un obiect de tip pickup
-		AActor* InteractableActor = Cast<AActor>(TargetInteractable.GetObject());
-		if (InteractableActor && InteractableActor->GetClass()->ImplementsInterface(UInteractionInterface::StaticClass()))
-		{
-			FInteractableData InteractableData = TargetInteractable->InteractableData;
-			if (InteractableData.InteractableType == EInteractableType::Pickup)
-			{
-		
-				// instantiere nou item de tipul obiectului din lume
-				UItemBase* NewItem = NewObject<UItemBase>(UItemBase::StaticClass());
-				NewItem->ItemID = FName(*InteractableData.Name.ToString());
-				NewItem->Quantity = InteractableData.Quantity;
-
-				// add item to inventar
-				if (InventoryComp->AddItem(NewItem))
-				{
-					// daca s-a adaugat cu succes, se elimina obiectul din lume
-					if (InteractableActor)
-					{
-						InteractableActor->Destroy();
-					}
-				}
-			}
-		}
-		TargetInteractable->Interact(this);
-	}
-	*/
 }
 
 
@@ -578,6 +546,8 @@ void AThirdPersonMPCharacter::GetLifetimeReplicatedProps(TArray <FLifetimeProper
 	DOREPLIFETIME(AThirdPersonMPCharacter, CurrentEXP);
 	DOREPLIFETIME(AThirdPersonMPCharacter, EXPToNextLevel);
 	DOREPLIFETIME(AThirdPersonMPCharacter, Level);
+	DOREPLIFETIME(AThirdPersonMPCharacter, AvailableStatPoints);
+
 
 
 }
@@ -678,7 +648,6 @@ void AThirdPersonMPCharacter::OnMaxHealthUpdate()
 {
 	// nothing yet
 }
-
 void AThirdPersonMPCharacter::OnCurrentHealthUpdate()
 {
 	//Client-specific functionality
@@ -706,7 +675,6 @@ void AThirdPersonMPCharacter::OnCurrentHealthUpdate()
 				Any special functionality that should occur as a result of damage or death should be placed here.
 			*/
 }
-
 void AThirdPersonMPCharacter::OnHealthRegenUpdate()
 {
 	// nothing yet
@@ -724,7 +692,7 @@ void AThirdPersonMPCharacter::OnCurrentManaUpdate()
 	//Client-specific functionality
 	if (IsLocallyControlled())
 	{
-		FString healthMessage = FString::Printf(TEXT("You now have %f health remaining."), CurrentMana);
+		FString healthMessage = FString::Printf(TEXT("You now have %f mana remaining."), CurrentMana);
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, healthMessage);
 
 		if (CurrentMana <= 0)
@@ -886,23 +854,43 @@ void AThirdPersonMPCharacter::OnStrengthUpdate()
 }
 void AThirdPersonMPCharacter::OnConstitutionUpdate()
 {
-	// nothing yet
+	if (IsLocallyControlled())
+	{
+		FString strText = FString::Printf(TEXT("Constitution updated: %d"), Constitution);
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Cyan, strText);
+	}
 }
 void AThirdPersonMPCharacter::OnDexterityUpdate()
 {
-	// nothing yet
+	if (IsLocallyControlled())
+	{
+		FString strText = FString::Printf(TEXT("Dexterity updated: %d"), Dexterity);
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Cyan, strText);
+	}
 }
 void AThirdPersonMPCharacter::OnIntelligenceUpdate()
 {
-	// nothing yet
+	if (IsLocallyControlled())
+	{
+		FString strText = FString::Printf(TEXT("Intelligence updated: %d"), Intelligence);
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Cyan, strText);
+	}
 }
 void AThirdPersonMPCharacter::OnWisdomUpdate()
 {
-	// nothing yet
+	if (IsLocallyControlled())
+	{
+		FString strText = FString::Printf(TEXT("Wisdom updated: %d"), Wisdom);
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Cyan, strText);
+	}
 }
 void AThirdPersonMPCharacter::OnLuckUpdate()
 {
-	// nothing yet
+	if (IsLocallyControlled())
+	{
+		FString strText = FString::Printf(TEXT("Luck updated: %d"), Luck);
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Cyan, strText);
+	}
 }
 
 // UI Base Stats update
@@ -1037,7 +1025,6 @@ void AThirdPersonMPCharacter::OnRep_HealthRegenInterval()
 	// aici
 	OnHealthRegenIntervalUpdate();
 }
-
 void AThirdPersonMPCharacter::OnRep_MaxMana()
 {
 	// aici
@@ -1058,7 +1045,6 @@ void AThirdPersonMPCharacter::OnRep_ManaRegenInterval()
 	// aici
 	OnManaRegenIntervalUpdate();
 }
-
 void AThirdPersonMPCharacter::OnRep_MaxSkillStamina()
 {
 	// aici
@@ -1079,7 +1065,6 @@ void AThirdPersonMPCharacter::OnRep_SkillStaminaRegenInterval()
 	// aici
 	OnSkillStaminaRegenIntervalUpdate();
 }
-
 void AThirdPersonMPCharacter::OnRep_MaxMovementStamina()
 {
 	// aici
@@ -1100,7 +1085,6 @@ void AThirdPersonMPCharacter::OnRep_MovementStaminaRegenInterval()
 	// aici
 	OnMovementStaminaRegenIntervalUpdate();
 }
-
 void AThirdPersonMPCharacter::OnRep_PhysicalAttack()
 {
 	// aici
@@ -1121,7 +1105,6 @@ void AThirdPersonMPCharacter::OnRep_MagicalDefense()
 	// aici
 	OnMagicalDefenseUpdate();
 }
-
 void AThirdPersonMPCharacter::OnRep_Strength()
 {
 	// aici
@@ -1558,7 +1541,6 @@ void AThirdPersonMPCharacter::SetLuck(int statValue)
 
 }
 
-
 bool AThirdPersonMPCharacter::ConsumeMana(float ManaCost)
 {
 	if (CurrentMana >= ManaCost)
@@ -1569,7 +1551,6 @@ bool AThirdPersonMPCharacter::ConsumeMana(float ManaCost)
 	return false;
 
 }
-
 void AThirdPersonMPCharacter::UpdateMaxHealth()
 {
 	// the actual Update
@@ -1787,6 +1768,13 @@ void AThirdPersonMPCharacter::UpdateConstitution()
 				NewConstitution += Mod.Amount;
 
 	SetConstitution(NewConstitution);
+	UpdateMaxHealth();
+	UpdateHealthRegen();
+	UpdateHealthRegenInterval();
+	UpdatePhysicalDefense();
+	UpdateMaxMovementStamina();
+	UpdateMovementStaminaRegen();
+	UpdateMovementStaminaRegenInterval();
 }
 void AThirdPersonMPCharacter::UpdateDexterity()
 {
@@ -1797,6 +1785,15 @@ void AThirdPersonMPCharacter::UpdateDexterity()
 				NewDexterity += Mod.Amount;
 
 	SetDexterity(NewDexterity);
+	UpdatePhysicalAttack();
+	UpdateMaxSkillStamina();
+	UpdateSkillStaminaRegen();
+	UpdateSkillStaminaRegenInterval();
+	UpdateMaxMovementStamina();
+	UpdateMovementStaminaRegen();
+	UpdateMovementStaminaRegenInterval();
+	// UpdateAccuracy();
+	// UpdateEvasion();
 }
 void AThirdPersonMPCharacter::UpdateIntelligence()
 {
@@ -1807,6 +1804,10 @@ void AThirdPersonMPCharacter::UpdateIntelligence()
 				NewIntelligence += Mod.Amount;
 
 	SetIntelligence(NewIntelligence);
+	UpdateMagicalAttack();
+	UpdateMaxMana();
+	UpdateManaRegen();
+	UpdateManaRegenInterval();
 }
 void AThirdPersonMPCharacter::UpdateWisdom()
 {
@@ -1817,6 +1818,10 @@ void AThirdPersonMPCharacter::UpdateWisdom()
 				NewWisdom += Mod.Amount;
 
 	SetWisdom(NewWisdom);
+	UpdateMagicalDefense();
+	UpdateMaxMana();
+	UpdateManaRegen();
+	UpdateManaRegenInterval();
 }
 void AThirdPersonMPCharacter::UpdateLuck()
 {
@@ -1827,10 +1832,28 @@ void AThirdPersonMPCharacter::UpdateLuck()
 				NewLuck += Mod.Amount;
 
 	SetLuck(NewLuck);
+	// UpdateCriticalChance();
+	// UpdateCriticalDamage();
 }
 
 
-// Update All Stats
+// Update All Stats ( not STR, DEX, CON, INT, WIS, LUCK)
+void AThirdPersonMPCharacter::UpdateAll()
+{
+	UpdateMaxHealth();
+	UpdateHealthRegen();
+	UpdateHealthRegenInterval();
+	UpdateMaxMana();
+	UpdateManaRegen();
+	UpdateManaRegenInterval();
+	UpdateMaxSkillStamina();
+	UpdateSkillStaminaRegen();
+	UpdateSkillStaminaRegenInterval();
+	UpdateMaxMovementStamina();
+	UpdateMovementStaminaRegen();
+	UpdateMovementStaminaRegenInterval();
+
+}
 void AThirdPersonMPCharacter::FlushDirtyStats()
 {
 	if (!HasAuthority())
@@ -1999,6 +2022,65 @@ void AThirdPersonMPCharacter::RemoveBuff(FName BuffName)
 
 }
 
+// functii de replicare pentru adaugarea unu punct la stats
+void AThirdPersonMPCharacter::ServerAddStrengthPoint_Implementation()
+{
+	if (AvailableStatPoints > 0)
+	{
+		AvailableStatPoints--;
+		BaseStrength++;
+		UpdateStrength();
+	}
+}
+void AThirdPersonMPCharacter::ServerAddConstitutionPoint_Implementation()
+{
+	if (AvailableStatPoints > 0)
+	{
+		AvailableStatPoints--;
+		BaseConstitution++;
+		UpdateConstitution();
+	}
+}
+void AThirdPersonMPCharacter::ServerAddDexterityPoint_Implementation()
+{
+	if (AvailableStatPoints > 0)
+	{
+		AvailableStatPoints--;
+		BaseDexterity++;
+		UpdateDexterity();
+	}
+}
+void AThirdPersonMPCharacter::ServerAddIntelligencePoint_Implementation()
+{
+	if (AvailableStatPoints > 0)
+	{
+		AvailableStatPoints--;
+		BaseIntelligence++;
+		UpdateIntelligence();
+	}
+}
+void AThirdPersonMPCharacter::ServerAddWisdomPoint_Implementation()
+{
+	if (AvailableStatPoints > 0)
+	{
+		AvailableStatPoints--;
+		BaseWisdom++;
+		UpdateWisdom();
+	}
+}
+void AThirdPersonMPCharacter::ServerAddLuckPoint_Implementation()
+{
+	if (AvailableStatPoints > 0)
+	{
+		AvailableStatPoints--;
+		BaseLuck++;
+		UpdateLuck();
+	}
+}
+
+
+
+
 /* Folosire Consume Mana
 if (ConsumeMana(25.f))
 {
@@ -2098,6 +2180,12 @@ void AThirdPersonMPCharacter::OnRep_Level()
 		// notificare UI
 	}
 }
+
+void AThirdPersonMPCharacter::OnRep_AvailableStatPoints()
+{
+	// notificare UI
+}
+
 
 void AThirdPersonMPCharacter::LevelUp()
 {
@@ -2309,7 +2397,22 @@ void AThirdPersonMPCharacter::ToggleMouseVisibility()
 void AThirdPersonMPCharacter::MeleeAttack()
 {
 	if (!bCanAttack) return;
+
+	// daca suntem intr-o animatie de atack, pregatim urmatoarea
+	if (GetMesh()->GetAnimInstance()->Montage_IsPlaying(EquippedWeapon->AttackMontage))
+	{
+		if (bCanDoCombo)
+		{
+			CurrentComboIndex = FMath::Clamp(CurrentComboIndex + 1, 0, 2); // max 3 combo-uri
+			bCanDoCombo = false;
+		}
+		return;
+	}
+
+
 	bCanAttack = false;
+	CurrentComboIndex = 0;
+	PlayAttackSection(CurrentComboIndex);
 
 	// pornim timerul
 	GetWorldTimerManager().SetTimer(MeleeAttackCooldownTimer, this, &AThirdPersonMPCharacter::ResetAttackCooldown, MeleeAttackCooldown,	false);
@@ -2317,6 +2420,24 @@ void AThirdPersonMPCharacter::MeleeAttack()
 	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Atac permis!"));
 	ServerMeleeAttack();
 }
+void AThirdPersonMPCharacter::PlayAttackSection(int32 Index)
+{
+	FName SectionName;
+	switch (Index)
+	{
+	case 0: SectionName = "Attack1"; break;
+	case 1: SectionName = "Attack2"; break;
+	case 2: SectionName = "Attack3"; break;
+	default: SectionName = "Attack1"; break;
+	}
+
+	GetMesh()->GetAnimInstance()->Montage_JumpToSection(SectionName, EquippedWeapon->AttackMontage);
+}
+void AThirdPersonMPCharacter::EnableCombo()
+{
+	bCanDoCombo = true;
+}
+
 
 void AThirdPersonMPCharacter::ServerMeleeAttack_Implementation()
 {
