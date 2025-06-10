@@ -2398,7 +2398,7 @@ void AThirdPersonMPCharacter::MeleeAttack()
 {
 	if (!bCanAttack) return;
 
-	// daca suntem intr-o animatie de atack, pregatim urmatoarea
+	// daca characterul este intr-o animatie de atack, se pregateste urmatoarea
 	if (GetMesh()->GetAnimInstance()->Montage_IsPlaying(EquippedWeapon->AttackMontage))
 	{
 		if (bCanDoCombo)
@@ -2413,10 +2413,10 @@ void AThirdPersonMPCharacter::MeleeAttack()
 	bCanAttack = false;
 	CurrentComboIndex = 0;
 	PlayAttackSection(CurrentComboIndex);
-
-	// pornim timerul
+	float AnimDuration = PlayAnimMontage(EquippedWeapon->AttackMontage);
+	// pornire timer
 	GetWorldTimerManager().SetTimer(MeleeAttackCooldownTimer, this, &AThirdPersonMPCharacter::ResetAttackCooldown, MeleeAttackCooldown,	false);
-	// activam atacul efectiv
+	// se activeaza atacul efectiv
 	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Atac permis!"));
 	ServerMeleeAttack();
 }
