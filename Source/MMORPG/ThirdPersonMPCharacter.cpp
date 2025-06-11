@@ -2405,6 +2405,7 @@ void AThirdPersonMPCharacter::MeleeAttack()
 		{
 			CurrentComboIndex = FMath::Clamp(CurrentComboIndex + 1, 0, 2); // max 3 combo-uri
 			bCanDoCombo = false;
+			//GetWorldTimerManager().ClearTimer(ComboResetHandle); // se opreste resetarea daca se continua combo
 		}
 		return;
 	}
@@ -2436,6 +2437,12 @@ void AThirdPersonMPCharacter::PlayAttackSection(int32 Index)
 void AThirdPersonMPCharacter::EnableCombo()
 {
 	bCanDoCombo = true;
+}
+
+void AThirdPersonMPCharacter::ResetCombo()
+{
+	bCanDoCombo = false;
+	CurrentComboIndex = 0;
 }
 
 

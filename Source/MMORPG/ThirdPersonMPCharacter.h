@@ -172,6 +172,8 @@ public:
 	void PlayAttackSection(int32 Index);
 	UFUNCTION()
 	void EnableCombo();
+	UFUNCTION()
+	void ResetCombo();
 
 	UFUNCTION(Server, Reliable)
 	void ServerMeleeAttack();
