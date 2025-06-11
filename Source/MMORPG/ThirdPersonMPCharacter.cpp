@@ -2547,9 +2547,14 @@ void AThirdPersonMPCharacter::Multicast_PlayAttackMontage_Implementation()
 	UAnimInstance* Anim = GetMesh()->GetAnimInstance();
 	if (!Anim) return;
 
-	Anim->Montage_Play(EquippedWeapon->AttackMontage);
-	Anim->Montage_JumpToSection(CurrentComboSection, EquippedWeapon->AttackMontage);
 
+
+	if (CurrentComboSection != NAME_None)
+	{
+		PlayAnimMontage(EquippedWeapon->AttackMontage);
+		GetMesh()->GetAnimInstance()->Montage_JumpToSection(CurrentComboSection, EquippedWeapon->AttackMontage);
+		bCanMove = false;
+	}
 		//bCanMove = false;
 
 		/*
