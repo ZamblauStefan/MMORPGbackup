@@ -2406,7 +2406,8 @@ void AThirdPersonMPCharacter::MeleeAttack()
 	}
 
 
-	if (!bCanAttack || !EquippedWeapon || !EquippedWeapon->AttackMontage) return;
+	if (!EquippedWeapon || !EquippedWeapon->AttackMontage) return;
+	if (!bCanAttack && !bCanDoCombo) return;
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (!AnimInstance) return;
@@ -2424,7 +2425,7 @@ void AThirdPersonMPCharacter::MeleeAttack()
 								FName("Attack1"); // fallback
 			AnimInstance->Montage_JumpToSection(NextSection, EquippedWeapon->AttackMontage);
 			bCanDoCombo = false;
-
+			bComboInputBuffered = true;
 			// aplicare damage
 			MeleeAttack_Internal();
 		}
@@ -2463,6 +2464,7 @@ void AThirdPersonMPCharacter::ResetComboSection()
 {
 	CurrentComboIndex = 0;
 	CurrentComboSection = NAME_None;
+	bComboInputBuffered = false;
 	bCanDoCombo = false;
 	bCanAttack = true;
 }

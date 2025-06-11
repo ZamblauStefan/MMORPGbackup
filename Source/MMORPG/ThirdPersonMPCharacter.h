@@ -193,7 +193,8 @@ public:
 	bool bCanAttack = true;
 	FTimerHandle MeleeAttackCooldownTimer;
 
-
+	UPROPERTY()
+	bool bComboInputBuffered = false;
 
 	// Combat System
 	///////////////////////////////////////////////////

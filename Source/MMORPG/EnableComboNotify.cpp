@@ -16,6 +16,12 @@ void UEnableComboNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceB
 	if (Character)
 	{
 		Character->bCanDoCombo = true;
+
+		// aici verificam daca jucatorul a apasat deja
+		if (Character->bComboInputBuffered)
+		{
+			Character->bComboInputBuffered = false;
+		}
 	}
 
 	GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Green, TEXT("Combo ENABLED"));
