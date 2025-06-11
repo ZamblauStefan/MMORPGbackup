@@ -9,12 +9,9 @@ void UResetComboNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBa
 {
 	if (!MeshComp) return;
 
-	AThirdPersonMPCharacter* Character = Cast<AThirdPersonMPCharacter>(MeshComp->GetOwner());
-	if (Character)
+	if (AThirdPersonMPCharacter* Character = Cast<AThirdPersonMPCharacter>(MeshComp->GetOwner()))
 	{
-		Character->bCanDoCombo = false;
-		Character->CurrentComboIndex = 0;
-		Character->bCanAttack = true;
+		Character->ResetComboSection();
 	}
 
 	GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("Combo RESET"));

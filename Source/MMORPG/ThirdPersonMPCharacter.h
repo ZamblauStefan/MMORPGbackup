@@ -174,15 +174,18 @@ public:
 	void EnableCombo();
 	UFUNCTION()
 	void ResetCombo();
+	UFUNCTION()
+	void ResetComboSection();
+
 
 	UFUNCTION(Server, Reliable)
-	void ServerMeleeAttack(FName SectionName);
+	void ServerMeleeAttack();
 
 	UFUNCTION(Category = "Combat")
 	void MeleeAttack_Internal();
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_PlayAttackMontage(FName SectionName);
+	void Multicast_PlayAttackMontage();
 
 	// Cooldown
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
@@ -964,6 +967,9 @@ public:
 	void GainEXP(int32 Amount);
 	UFUNCTION()
 	void OnEXPChanged();
+
+	UPROPERTY()
+	FName CurrentComboSection;
 
 	UPROPERTY(Replicated, BlueprintReadWrite, Category = "Combat")
 	bool bCanMove = true;
