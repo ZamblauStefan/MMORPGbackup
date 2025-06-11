@@ -2398,27 +2398,26 @@ void AThirdPersonMPCharacter::MeleeAttack()
 {
 	if (!bCanAttack) return;
 
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (!AnimInstance || !EquippedWeapon || !EquippedWeapon->AttackMontage) return;
+
 	// daca characterul este intr-o animatie de atack, se pregateste urmatoarea
-	if (GetMesh()->GetAnimInstance()->Montage_IsPlaying(EquippedWeapon->AttackMontage))
+	if (AnimInstance->Montage_IsPlaying(EquippedWeapon->AttackMontage))
 	{
 		if (bCanDoCombo)
 		{
-			CurrentComboIndex = FMath::Clamp(CurrentComboIndex + 1, 0, 2); // max 3 combo-uri
+			CurrentComboIndex++;
+			FName NextSection = (CurrentComboIndex == 1) ? "Attack2" : "Attack3"; // max 3 combo-uri
 			bCanDoCombo = false;
-			//GetWorldTimerManager().ClearTimer(ComboResetHandle); // se opreste resetarea daca se continua combo
+			AnimInstance->Montage_JumpToSection(NextSection, EquippedWeapon->AttackMontage);
 		}
 		return;
 	}
 
-
-	bCanAttack = false;
 	CurrentComboIndex = 0;
-	PlayAttackSection(CurrentComboIndex);
-	float AnimDuration = PlayAnimMontage(EquippedWeapon->AttackMontage);
-	// pornire timer
-	GetWorldTimerManager().SetTimer(MeleeAttackCooldownTimer, this, &AThirdPersonMPCharacter::ResetAttackCooldown, MeleeAttackCooldown,	false);
-	// se activeaza atacul efectiv
-	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Atac permis!"));
+	bCanAttack = false;
+	bCanDoCombo = false;
+	// se activeaza atacul efectiv pe server
 	ServerMeleeAttack();
 }
 void AThirdPersonMPCharacter::PlayAttackSection(int32 Index)
@@ -2448,7 +2447,7 @@ void AThirdPersonMPCharacter::ResetCombo()
 
 void AThirdPersonMPCharacter::ServerMeleeAttack_Implementation()
 {
-	if (!HasAuthority()) return;
+	// if (!HasAuthority()) return;
 
 	MeleeAttack_Internal(); // logica de damage
 	Multicast_PlayAttackMontage(); // animatie + restrictie movement
@@ -2457,11 +2456,21 @@ void AThirdPersonMPCharacter::ServerMeleeAttack_Implementation()
 void AThirdPersonMPCharacter::MeleeAttack_Internal()
 {
 
-	if (SwordAttackMontage && !GetMesh()->GetAnimInstance()->Montage_IsPlaying(SwordAttackMontage))
-	{
 
-		PlayAnimMontage(EquippedWeapon->AttackMontage);
 
+		if (!EquippedWeapon || !EquippedWeapon->AttackMontage) return;
+
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (!AnimInstance) return;
+
+		// daca Character nu este in animatie se porneste prima animatie
+		if (!AnimInstance->Montage_IsPlaying(EquippedWeapon->AttackMontage))
+		{
+			AnimInstance->Montage_Play(EquippedWeapon->AttackMontage);
+			AnimInstance->Montage_JumpToSection(FName("Attack1"), EquippedWeapon->AttackMontage);
+		}
+
+		// se aplica damage indiferent de combo-ul redat
 		FVector Start = GetActorLocation();
 		FVector Forward = GetActorForwardVector();
 		FVector End = Start + Forward * 150.0f;
@@ -2476,13 +2485,12 @@ void AThirdPersonMPCharacter::MeleeAttack_Internal()
 		{
 			AActor* HitActor = Hit.GetActor();
 			UGameplayStatics::ApplyDamage(HitActor, PhysicalAttack, GetController(), this, nullptr);
+
+			// DEBUG
+			GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("Enemy HIT!"));
 		}
 
 		
-
-
-	}
-	
 }
 
 
@@ -2490,7 +2498,7 @@ float AThirdPersonMPCharacter::TakeDamage(float DamageTaken, struct FDamageEvent
 {
 	float NewCurrentHealth = CurrentHealth - DamageTaken;
 	SetCurrentHealth(NewCurrentHealth);
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("HP: %f"), CurrentHealth));
+	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("HP: %f"), CurrentHealth));
 
 	return NewCurrentHealth;
 }

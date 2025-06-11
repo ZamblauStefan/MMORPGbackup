@@ -17,6 +17,10 @@ void UEnableComboNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceB
 	{
 		Character->bCanDoCombo = true;
 	}
+
+	GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Green, TEXT("Combo ENABLED"));
+
+
 }
 
 
