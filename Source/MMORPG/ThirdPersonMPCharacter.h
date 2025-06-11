@@ -176,13 +176,13 @@ public:
 	void ResetCombo();
 
 	UFUNCTION(Server, Reliable)
-	void ServerMeleeAttack();
+	void ServerMeleeAttack(FName SectionName);
 
 	UFUNCTION(Category = "Combat")
 	void MeleeAttack_Internal();
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_PlayAttackMontage();
+	void Multicast_PlayAttackMontage(FName SectionName);
 
 	// Cooldown
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")

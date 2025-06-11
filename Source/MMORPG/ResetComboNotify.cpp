@@ -14,6 +14,7 @@ void UResetComboNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBa
 	{
 		Character->bCanDoCombo = false;
 		Character->CurrentComboIndex = 0;
+		Character->bCanAttack = true;
 	}
 
 	GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("Combo RESET"));

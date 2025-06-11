@@ -2396,20 +2396,38 @@ void AThirdPersonMPCharacter::ToggleMouseVisibility()
 
 void AThirdPersonMPCharacter::MeleeAttack()
 {
-	if (!bCanAttack) return;
+	FName CurrentSection;
+
+	switch (CurrentComboIndex)
+	{
+	case 0: CurrentSection = "Attack1"; break;
+	case 1: CurrentSection = "Attack2"; break;
+	case 2: CurrentSection = "Attack3"; break;
+	default: CurrentSection = "Attack1"; break;
+	}
+
+
+	if (!bCanAttack || !EquippedWeapon || !EquippedWeapon->AttackMontage) return;
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (!AnimInstance || !EquippedWeapon || !EquippedWeapon->AttackMontage) return;
+	if (!AnimInstance) return;
 
 	// daca characterul este intr-o animatie de atack, se pregateste urmatoarea
 	if (AnimInstance->Montage_IsPlaying(EquippedWeapon->AttackMontage))
 	{
+		// character este in animatie
 		if (bCanDoCombo)
 		{
 			CurrentComboIndex++;
-			FName NextSection = (CurrentComboIndex == 1) ? "Attack2" : "Attack3"; // max 3 combo-uri
-			bCanDoCombo = false;
+
+			FName NextSection = (CurrentComboIndex == 1) ? "Attack2" :
+								(CurrentComboIndex == 2) ? "Attack3" :
+								FName("Attack1"); // fallback
 			AnimInstance->Montage_JumpToSection(NextSection, EquippedWeapon->AttackMontage);
+			bCanDoCombo = false;
+
+			// aplicare damage
+			MeleeAttack_Internal();
 		}
 		return;
 	}
@@ -2418,7 +2436,7 @@ void AThirdPersonMPCharacter::MeleeAttack()
 	bCanAttack = false;
 	bCanDoCombo = false;
 	// se activeaza atacul efectiv pe server
-	ServerMeleeAttack();
+	ServerMeleeAttack(CurrentSection);
 }
 void AThirdPersonMPCharacter::PlayAttackSection(int32 Index)
 {
@@ -2445,18 +2463,16 @@ void AThirdPersonMPCharacter::ResetCombo()
 }
 
 
-void AThirdPersonMPCharacter::ServerMeleeAttack_Implementation()
+void AThirdPersonMPCharacter::ServerMeleeAttack_Implementation(FName SectionName)
 {
 	// if (!HasAuthority()) return;
 
 	MeleeAttack_Internal(); // logica de damage
-	Multicast_PlayAttackMontage(); // animatie + restrictie movement
+	Multicast_PlayAttackMontage(SectionName); // animatie + restrictie movement
 }
 
-void AThirdPersonMPCharacter::MeleeAttack_Internal()
+void AThirdPersonMPCharacter::MeleeAttack_Internal(FName SectionName)
 {
-
-
 
 		if (!EquippedWeapon || !EquippedWeapon->AttackMontage) return;
 
