@@ -548,6 +548,9 @@ void AThirdPersonMPCharacter::GetLifetimeReplicatedProps(TArray <FLifetimeProper
 	DOREPLIFETIME(AThirdPersonMPCharacter, Level);
 	DOREPLIFETIME(AThirdPersonMPCharacter, AvailableStatPoints);
 
+	// replicated for combat
+	DOREPLIFETIME(AThirdPersonMPCharacter, CurrentComboSection);
+
 
 
 }
@@ -2396,19 +2399,21 @@ void AThirdPersonMPCharacter::ToggleMouseVisibility()
 
 void AThirdPersonMPCharacter::MeleeAttack()
 {
-	
-	switch (CurrentComboIndex)
-	{
-	case 0: CurrentComboSection = "Attack1"; break;
-	case 1: CurrentComboSection = "Attack2"; break;
-	case 2: CurrentComboSection = "Attack3"; break;
-	default: CurrentComboSection = "Attack1"; break;
-	}
-
 
 	if (!EquippedWeapon || !EquippedWeapon->AttackMontage) return;
 	if (!bCanAttack && !bCanDoCombo) return;
 
+	if (!HasAuthority())
+	{
+		ServerMeleeAttack();
+		return;
+	}
+
+	bCanAttack = false;
+	ServerMeleeAttack();
+
+	/*
+	* 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (!AnimInstance) return;
 
@@ -2437,6 +2442,8 @@ void AThirdPersonMPCharacter::MeleeAttack()
 	bCanDoCombo = false;
 	// se activeaza atacul efectiv pe server
 	ServerMeleeAttack();
+	
+	*/
 }
 void AThirdPersonMPCharacter::PlayAttackSection(int32 Index)
 {
@@ -2475,6 +2482,7 @@ void AThirdPersonMPCharacter::ServerMeleeAttack_Implementation()
 
 	MeleeAttack_Internal(); // logica de damage
 	Multicast_PlayAttackMontage(); // animatie + restrictie movement
+
 }
 
 void AThirdPersonMPCharacter::MeleeAttack_Internal()
@@ -2549,14 +2557,25 @@ void AThirdPersonMPCharacter::Multicast_PlayAttackMontage_Implementation()
 	UAnimInstance* Anim = GetMesh()->GetAnimInstance();
 	if (!Anim) return;
 
-
-
-	if (CurrentComboSection != NAME_None)
+	if (!Anim->Montage_IsPlaying(EquippedWeapon->AttackMontage))
 	{
-		PlayAnimMontage(EquippedWeapon->AttackMontage);
-		GetMesh()->GetAnimInstance()->Montage_JumpToSection(CurrentComboSection, EquippedWeapon->AttackMontage);
-		bCanMove = false;
+		Anim->Montage_Play(EquippedWeapon->AttackMontage);
 	}
+
+
+	FName SectionName;
+	switch (CurrentComboIndex)
+	{
+	case 0: SectionName = "Attack1"; break;
+	case 1: SectionName = "Attack2"; break;
+	case 2: SectionName = "Attack3"; break;
+	default: SectionName = "Attack1"; break;
+	}
+
+	Anim->Montage_JumpToSection(SectionName, EquippedWeapon->AttackMontage);
+
+	bCanMove = false;
+	
 		//bCanMove = false;
 
 		/*
