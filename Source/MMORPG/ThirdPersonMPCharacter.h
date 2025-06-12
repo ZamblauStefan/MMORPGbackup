@@ -969,7 +969,7 @@ public:
 	UFUNCTION()
 	void OnEXPChanged();
 
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	FName CurrentComboSection;
 
 	UPROPERTY(Replicated, BlueprintReadWrite, Category = "Combat")
