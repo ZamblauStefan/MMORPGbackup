@@ -2401,8 +2401,8 @@ void AThirdPersonMPCharacter::MeleeAttack()
 {
 
 	if (!EquippedWeapon || !EquippedWeapon->AttackMontage) return;
-	if (!bCanAttack) return;
-
+	if (!bCanAttack || bIsAttacking) return;
+	
 	if(bCanDoCombo)
 	{
 		CurrentComboIndex++;
@@ -2480,12 +2480,25 @@ void AThirdPersonMPCharacter::ResetCombo()
 }
 void AThirdPersonMPCharacter::ResetComboSection()
 {
-	CurrentComboIndex = 0;
-	CurrentComboSection = "Attack1";
-	bComboInputBuffered = false;
-	bCanDoCombo = false;
-	bCanAttack = true;
-	bCanMove = true;
+	if (bComboQueued)
+	{
+		bComboQueued = false;
+		bCanAttack = true;
+		MeleeAttack();
+	}
+	else
+	{
+		CurrentComboIndex = 0;
+		CurrentComboSection = "Attack1";
+		bComboInputBuffered = false;
+		bCanDoCombo = false;
+		bCanAttack = true;
+		bCanMove = true;
+		bIsAttacking = false;
+		bComboQueued = false;
+	}
+
+
 }
 
 void AThirdPersonMPCharacter::ServerMeleeAttack_Implementation()
@@ -2584,15 +2597,14 @@ void AThirdPersonMPCharacter::Multicast_PlayAttackMontage_Implementation()
 	default: SectionName = "Attack1"; break;
 	}
 
+	bIsAttacking = true;
+	bCanMove = false;
+
 	if (EquippedWeapon && EquippedWeapon->AttackMontage)
 	{
 		PlayAnimMontage(EquippedWeapon->AttackMontage);
 		GetMesh()->GetAnimInstance()->Montage_JumpToSection(SectionName);
 	}Anim->Montage_JumpToSection(SectionName, EquippedWeapon->AttackMontage);
-
-	bCanMove = false;
-	
-		//bCanMove = false;
 
 		/*
 		if (IsLocallyControlled())

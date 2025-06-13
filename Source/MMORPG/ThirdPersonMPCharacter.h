@@ -160,6 +160,12 @@ public:
 	UPROPERTY()
 	bool bCanDoCombo = false;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+	bool bIsAttacking = false;
+
+	UPROPERTY()
+	bool bComboQueued = false;
+
 	UPROPERTY()
 	AWeaponBase* EquippedWeapon;
 
