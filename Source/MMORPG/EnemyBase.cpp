@@ -15,6 +15,7 @@
 #include "Components/ProgressBar.h"
 #include <Kismet/KismetMathLibrary.h>
 #include <Components/TextBlock.h>
+#include <NavigationSystem.h>
 
 
 
@@ -53,6 +54,7 @@ AEnemyBase::AEnemyBase()
 void AEnemyBase::BeginPlay()
 {
 	Super::BeginPlay();
+	InitialLocation = GetActorLocation();
 
 	if (HasAuthority()) // server-ul seteaza initial health
 	{
@@ -77,6 +79,7 @@ void AEnemyBase::BeginPlay()
 		}
 	}
 
+	GetWorldTimerManager().SetTimer(WanderTimerHandle, this, &AEnemyBase::HandleWanderLogic, 5.0f, true);
 
 
 }
@@ -351,3 +354,35 @@ void AEnemyBase::OnRep_CurrentHealth()
 
 
 
+void AEnemyBase::MoveRandomly()
+{
+	FVector RandomDirection = FMath::VRand();
+	RandomDirection.Z = 0.0f; // doar pe axele X si Y
+
+	FVector TargetLocation = GetActorLocation() + RandomDirection * 500.0f; // 5 metri = 500 cm
+
+	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
+	if (NavSys)
+	{
+		FNavLocation NavLocation;
+		if (NavSys->GetRandomPointInNavigableRadius(TargetLocation, 100.0f, NavLocation))
+		{
+			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), NavLocation.Location);
+		}
+	}
+}
+
+
+void AEnemyBase::HandleWanderLogic()
+{
+	if (WanderCount >= MaxWandersBeforeReturn)
+	{
+		UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), InitialLocation);
+		WanderCount = 0;
+	}
+	else
+	{
+		MoveRandomly();
+		WanderCount++;
+	}
+}

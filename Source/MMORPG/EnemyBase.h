@@ -86,8 +86,17 @@ public:
 
 	UFUNCTION()
 	void OnRep_CurrentHealth();
+	UFUNCTION()
+	void MoveRandomly();
+	UFUNCTION()
+	void HandleWanderLogic();
 
 	bool bInitializedHealthBar = false;
+	FTimerHandle WanderTimerHandle;
 
+	FVector InitialLocation;
+
+	int32 WanderCount = 0;
+	int32 MaxWandersBeforeReturn = 4;
 
 };
