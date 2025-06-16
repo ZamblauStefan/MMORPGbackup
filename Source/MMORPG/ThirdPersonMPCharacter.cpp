@@ -2401,7 +2401,7 @@ void AThirdPersonMPCharacter::MeleeAttack()
 {
 
 	if (!EquippedWeapon || !EquippedWeapon->AttackMontage) return;
-	if (!bCanAttack || bIsAttacking) return;
+	if (!bCanAttack) return;
 	
 	if(bCanDoCombo)
 	{
@@ -2410,6 +2410,14 @@ void AThirdPersonMPCharacter::MeleeAttack()
 			CurrentComboIndex = 0;
 	}
 
+	if (bIsAttacking)
+	{
+		if (bCanDoCombo)
+		{
+			bComboQueued = true;
+		}
+		return;
+	}
 
 	bCanDoCombo = false;
 
@@ -2419,7 +2427,6 @@ void AThirdPersonMPCharacter::MeleeAttack()
 		return;
 	}
 
-	// bCanAttack = false;
 	ServerMeleeAttack();
 	
 
@@ -2483,7 +2490,9 @@ void AThirdPersonMPCharacter::ResetComboSection()
 	if (bComboQueued)
 	{
 		bComboQueued = false;
+		bCanDoCombo = false;
 		bCanAttack = true;
+		bIsAttacking = false;
 		MeleeAttack();
 	}
 	else
@@ -2581,12 +2590,6 @@ void AThirdPersonMPCharacter::Multicast_PlayAttackMontage_Implementation()
 	
 	UAnimInstance* Anim = GetMesh()->GetAnimInstance();
 	if (!Anim) return;
-
-	if (!Anim->Montage_IsPlaying(EquippedWeapon->AttackMontage))
-	{
-		Anim->Montage_Play(EquippedWeapon->AttackMontage);
-	}
-
 
 	FName SectionName;
 	switch (CurrentComboIndex)
