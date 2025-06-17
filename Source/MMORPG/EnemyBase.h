@@ -4,6 +4,8 @@
 #include "GameFramework/Character.h"
 #include "EnemyBase.generated.h"
 
+
+
 USTRUCT()
 struct FTauntData
 {
@@ -100,5 +102,14 @@ public:
 	int32 MaxWandersBeforeReturn = 4;
 
 	virtual void PossessedBy(AController* NewController) override;
+
+	UPROPERTY()
+	bool bIsWandering = false;
+
+	UPROPERTY()
+	AActor* RandomMoveTarget;
+
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	TSubclassOf<AActor> RandomTargetActorClass;
 
 };

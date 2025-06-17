@@ -29,6 +29,8 @@ AEnemyBase::AEnemyBase()
 	PrimaryActorTick.bCanEverTick = true;
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	AIControllerClass = AAIController::StaticClass();
+	bReplicates = true;
+	bAlwaysRelevant = true;
 
 	// widget health bar
 	HealthBarWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBar"));
@@ -48,6 +50,14 @@ AEnemyBase::AEnemyBase()
 		HealthBarWidget->SetWidgetClass(WidgetClass.Class);
 	}
 
+	// pentru movement random ( toactor cu actor inexistent)
+	static ConstructorHelpers::FClassFinder<AActor> TargetClassFinder(TEXT("/Game/Blueprints/BP_RandomMoveTarget"));
+	if (TargetClassFinder.Succeeded())
+	{
+		RandomTargetActorClass = TargetClassFinder.Class;
+	}
+
+	SetReplicateMovement(true);
 }
 
 // Called when the game starts or when spawned
@@ -55,6 +65,38 @@ void AEnemyBase::BeginPlay()
 {
 	Super::BeginPlay();
 	InitialLocation = GetActorLocation();
+	AAIController* AICon = Cast<AAIController>(GetController());
+	if (!AICon)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[EnemyBase] BeginPlay: AIController is NULL!"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] BeginPlay: AIController is OK"));
+	}
+	// movement AI
+	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
+	if (MoveComp)
+	{
+		MoveComp->bUseControllerDesiredRotation = true;
+		MoveComp->bOrientRotationToMovement = true;
+
+		UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] MovementComponent setup: UseControllerDesiredRotation = %s, OrientToMovement = %s"),
+			MoveComp->bUseControllerDesiredRotation ? TEXT("true") : TEXT("false"),
+			MoveComp->bOrientRotationToMovement ? TEXT("true") : TEXT("false"));
+
+		if (MoveComp->MovementMode == MOVE_None)
+		{
+			UE_LOG(LogTemp, Error, TEXT("[EnemyBase] MovementMode is NONE! -> Setting to Walking manually."));
+			MoveComp->SetMovementMode(EMovementMode::MOVE_Walking);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[EnemyBase] No CharacterMovementComponent found!"));
+	}
+
+	// end movement AI
 
 	if (HasAuthority()) // server-ul seteaza initial health
 	{
@@ -150,6 +192,8 @@ void AEnemyBase::Tick(float DeltaTime)
 		// Enemy a gasit Player, se duce dupa el si ataca
 		if (Target && AIController)
 		{
+			bIsWandering = false;
+
 			//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Player found!"));
 			const float AttackRange = 200.0f;
 			const float DetectionRadius = 800.0f;
@@ -182,6 +226,14 @@ void AEnemyBase::Tick(float DeltaTime)
 				AIController->StopMovement();
 			}
 
+		}
+		else
+		{
+			if (!bIsWandering)
+			{
+				// daca nu avem target si enemy nu este wandering, se incepe miscarea random
+				MoveRandomly();
+			}
 		}
 
 
@@ -353,6 +405,57 @@ void AEnemyBase::OnRep_CurrentHealth()
 
 void AEnemyBase::MoveRandomly()
 {
+
+	UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] MoveRandomly called!"));
+
+	if (!Controller || !Cast<AAIController>(Controller))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] No AIController!"));
+		return;
+	}
+
+	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+	if (!NavSys)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] No NavSystem!"));
+		return;
+	}
+
+	FNavLocation RandomLocation;
+	bool bFound = NavSys->GetRandomReachablePointInRadius(GetActorLocation(), 1500.f, RandomLocation);
+
+	if (bFound)
+	{
+		// creeaza targetul daca nu exista
+		if (!RandomMoveTarget && RandomTargetActorClass)
+		{
+			RandomMoveTarget = GetWorld()->SpawnActor<AActor>(RandomTargetActorClass, RandomLocation.Location, FRotator::ZeroRotator);
+			if (RandomMoveTarget)
+			{
+				RandomMoveTarget->SetActorEnableCollision(false);
+				RandomMoveTarget->SetActorHiddenInGame(true);
+			}
+		}
+		else if (RandomMoveTarget)
+		{
+			RandomMoveTarget->SetActorLocation(RandomLocation.Location);
+		}
+
+		// executa MoveToActor
+		AAIController* AIController = Cast<AAIController>(Controller);
+		if (AIController && RandomMoveTarget)
+		{
+			AIController->MoveToActor(RandomMoveTarget, 100.f);
+			UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] Moving to RandomTarget at: %s"), *RandomLocation.Location.ToString());
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] No valid random point found!"));
+	}
+
+
+	/*
 	UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] MoveRandomly called!"));
 
 	AAIController* AICon = Cast<AAIController>(GetController());
@@ -371,14 +474,14 @@ void AEnemyBase::MoveRandomly()
 
 
 	FNavLocation OutLocation;
-	if (!NavSys->GetRandomPointInNavigableRadius(InitialLocation, 500.f, OutLocation)) {
+	if (!NavSys->GetRandomPointInNavigableRadius(GetActorLocation(), 1500.f, OutLocation)) {
 		UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] NavSys failed to find point!"));
 		return;
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] Found point: %s"), *OutLocation.Location.ToString());
 
-	if (NavSys->GetRandomPointInNavigableRadius(InitialLocation, 1000.f, OutLocation))
+	if (NavSys->GetRandomPointInNavigableRadius(GetActorLocation(), 1500.f, OutLocation))
 	{
 		float Dist = FVector::Dist(GetActorLocation(), OutLocation.Location);
 		if (Dist < 200.f) // prea aproape
@@ -387,20 +490,34 @@ void AEnemyBase::MoveRandomly()
 			return;
 		}
 
+		// enemy se plimba randomly
+		bIsWandering = true;
+
 		FAIMoveRequest MoveRequest;
-		MoveRequest.SetGoalLocation(OutLocation.Location);
-		MoveRequest.SetAcceptanceRadius(200.0f);
+		FVector AdjustedLocation = OutLocation.Location + FVector(0.f, 0.f, 30.f); // ridicam Z cu 30 unitati
+		MoveRequest.SetGoalLocation(AdjustedLocation);
+		MoveRequest.SetAcceptanceRadius(100.0f);
 
 		FNavPathSharedPtr NavPath;
 		EPathFollowingRequestResult::Type Result = AICon->MoveTo(MoveRequest, &NavPath);
 		UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] MoveToResult: %d"), (int)Result);
 
-		// DEBUG
-		FVector DebugLocation = OutLocation.Location + FVector(0.f, 0.f, 50.f);
-		DrawDebugSphere(GetWorld(), DebugLocation, 50.f, 12, FColor::Green, false, 3.0f);
-		UE_LOG(LogTemp, Warning, TEXT("Enemy moving to random location: %s"), *OutLocation.Location.ToString());
-	}
+		if (NavPath.IsValid())
+		{
+			for (int32 i = 0; i < NavPath->GetPathPoints().Num() - 1; i++)
+			{
+				FVector Start = NavPath->GetPathPoints()[i].Location + FVector(0, 0, 20);
+				FVector End = NavPath->GetPathPoints()[i + 1].Location + FVector(0, 0, 20);
+				DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 3.0f, 0, 4.0f);
+			}
+		}
 
+		// DEBUG
+		FVector DebugLocation = AdjustedLocation + FVector(0.f, 0.f, 50.f);
+		DrawDebugSphere(GetWorld(), DebugLocation, 50.f, 12, FColor::Green, false, 3.0f);
+		UE_LOG(LogTemp, Warning, TEXT("Enemy moving to random location: %s"), *AdjustedLocation.ToString());
+	}
+*/
 }
 
 
