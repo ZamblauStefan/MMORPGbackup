@@ -99,4 +99,6 @@ public:
 	int32 WanderCount = 0;
 	int32 MaxWandersBeforeReturn = 4;
 
+	virtual void PossessedBy(AController* NewController) override;
+
 };

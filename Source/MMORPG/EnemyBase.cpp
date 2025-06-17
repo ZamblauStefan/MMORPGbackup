@@ -61,13 +61,6 @@ void AEnemyBase::BeginPlay()
 		CurrentHealth = MaxHealth;
 	}
 
-	if (!GetController())
-	{
-		AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
-		SpawnDefaultController();
-	}
-
-
 	// Widget 
 	UUserWidget* Widget = HealthBarWidget->GetUserWidgetObject();
 	if (Widget)
@@ -85,9 +78,6 @@ void AEnemyBase::BeginPlay()
 			HealthText->SetText(FText::FromString(HPString));
 		}
 	}
-
-	GetWorldTimerManager().SetTimer(WanderTimerHandle, this, &AEnemyBase::HandleWanderLogic, 5.0f, true);
-
 
 }
 
@@ -430,7 +420,7 @@ void AEnemyBase::HandleWanderLogic()
 
 			FAIMoveRequest MoveRequest;
 			MoveRequest.SetGoalLocation(InitialLocation);
-			MoveRequest.SetAcceptanceRadius(5.0f);
+			MoveRequest.SetAcceptanceRadius(100.0f);
 
 			FNavPathSharedPtr NavPath;
 			EPathFollowingRequestResult::Type Result = AICon->MoveTo(MoveRequest, &NavPath);
@@ -444,3 +434,13 @@ void AEnemyBase::HandleWanderLogic()
 	MoveRandomly();
 	WanderCount++;
 }
+
+void AEnemyBase::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] Possessed by controller: %s"), *NewController->GetName());
+
+	GetWorldTimerManager().SetTimer(WanderTimerHandle, this, &AEnemyBase::HandleWanderLogic, 5.0f, true);
+}
+
