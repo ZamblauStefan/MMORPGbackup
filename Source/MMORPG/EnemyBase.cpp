@@ -154,7 +154,7 @@ void AEnemyBase::Tick(float DeltaTime)
 		if (Target && AIController)
 		{
 			//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Player found!"));
-			const float AttackRange = 150.0f;
+			const float AttackRange = 200.0f;
 			const float DetectionRadius = 800.0f;
 			float DistanceToTarget = FVector::Dist(GetActorLocation(), Target->GetActorLocation());
 
@@ -356,19 +356,25 @@ void AEnemyBase::OnRep_CurrentHealth()
 
 void AEnemyBase::MoveRandomly()
 {
-	FVector RandomDirection = FMath::VRand();
-	RandomDirection.Z = 0.0f; // doar pe axele X si Y
-
-	FVector TargetLocation = GetActorLocation() + RandomDirection * 500.0f; // 5 metri = 500 cm
+	AAIController* AICon = Cast<AAIController>(GetController());
+	if (!AICon) return;
 
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
-	if (NavSys)
+	if (!NavSys) return;
+
+	FNavLocation OutLocation;
+	if (NavSys->GetRandomPointInNavigableRadius(InitialLocation, 500.f, OutLocation))
 	{
-		FNavLocation NavLocation;
-		if (NavSys->GetRandomPointInNavigableRadius(TargetLocation, 100.0f, NavLocation))
-		{
-			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), NavLocation.Location);
-		}
+		FAIMoveRequest MoveRequest;
+		MoveRequest.SetGoalLocation(OutLocation.Location);
+		MoveRequest.SetAcceptanceRadius(5.0f);
+
+		FNavPathSharedPtr NavPath;
+		AICon->MoveTo(MoveRequest, &NavPath);
+
+		// DEBUG
+		DrawDebugSphere(GetWorld(), OutLocation.Location, 50.f, 12, FColor::Green, false, 3.0f);
+		UE_LOG(LogTemp, Warning, TEXT("Enemy moving to random location: %s"), *OutLocation.Location.ToString());
 	}
 }
 
@@ -377,12 +383,15 @@ void AEnemyBase::HandleWanderLogic()
 {
 	if (WanderCount >= MaxWandersBeforeReturn)
 	{
-		UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), InitialLocation);
-		WanderCount = 0;
+		AAIController* AICon = Cast<AAIController>(GetController());
+		if (AICon)
+		{
+			AICon->MoveToLocation(InitialLocation);
+			WanderCount = 0;
+			return;
+		}
 	}
-	else
-	{
-		MoveRandomly();
-		WanderCount++;
-	}
+
+	MoveRandomly();
+	WanderCount++;
 }
