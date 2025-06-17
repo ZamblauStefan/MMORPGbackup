@@ -378,10 +378,10 @@ void AEnemyBase::MoveRandomly()
 
 	UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] Found point: %s"), *OutLocation.Location.ToString());
 
-	if (NavSys->GetRandomPointInNavigableRadius(InitialLocation, 500.f, OutLocation))
+	if (NavSys->GetRandomPointInNavigableRadius(InitialLocation, 1000.f, OutLocation))
 	{
 		float Dist = FVector::Dist(GetActorLocation(), OutLocation.Location);
-		if (Dist < 100.f) // prea aproape
+		if (Dist < 200.f) // prea aproape
 		{
 			UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] Skipping move, distance too small: %f"), Dist);
 			return;
@@ -389,14 +389,15 @@ void AEnemyBase::MoveRandomly()
 
 		FAIMoveRequest MoveRequest;
 		MoveRequest.SetGoalLocation(OutLocation.Location);
-		MoveRequest.SetAcceptanceRadius(5.0f);
+		MoveRequest.SetAcceptanceRadius(200.0f);
 
 		FNavPathSharedPtr NavPath;
 		EPathFollowingRequestResult::Type Result = AICon->MoveTo(MoveRequest, &NavPath);
 		UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] MoveToResult: %d"), (int)Result);
 
 		// DEBUG
-		DrawDebugSphere(GetWorld(), OutLocation.Location, 50.f, 12, FColor::Green, false, 3.0f);
+		FVector DebugLocation = OutLocation.Location + FVector(0.f, 0.f, 50.f);
+		DrawDebugSphere(GetWorld(), DebugLocation, 50.f, 12, FColor::Green, false, 3.0f);
 		UE_LOG(LogTemp, Warning, TEXT("Enemy moving to random location: %s"), *OutLocation.Location.ToString());
 	}
 
@@ -411,7 +412,7 @@ void AEnemyBase::HandleWanderLogic()
 		if (AICon)
 		{
 			float Dist = FVector::Dist(GetActorLocation(), InitialLocation);
-			if (Dist < 100.f)
+			if (Dist < 200.f)
 			{
 				UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] Already at start, skipping return."));
 				WanderCount = 0;
@@ -420,7 +421,7 @@ void AEnemyBase::HandleWanderLogic()
 
 			FAIMoveRequest MoveRequest;
 			MoveRequest.SetGoalLocation(InitialLocation);
-			MoveRequest.SetAcceptanceRadius(100.0f);
+			MoveRequest.SetAcceptanceRadius(200.0f);
 
 			FNavPathSharedPtr NavPath;
 			EPathFollowingRequestResult::Type Result = AICon->MoveTo(MoveRequest, &NavPath);
