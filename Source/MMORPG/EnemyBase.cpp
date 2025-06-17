@@ -61,6 +61,13 @@ void AEnemyBase::BeginPlay()
 		CurrentHealth = MaxHealth;
 	}
 
+	if (!GetController())
+	{
+		AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+		SpawnDefaultController();
+	}
+
+
 	// Widget 
 	UUserWidget* Widget = HealthBarWidget->GetUserWidgetObject();
 	if (Widget)
@@ -356,26 +363,53 @@ void AEnemyBase::OnRep_CurrentHealth()
 
 void AEnemyBase::MoveRandomly()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] MoveRandomly called!"));
+
 	AAIController* AICon = Cast<AAIController>(GetController());
-	if (!AICon) return;
+	if (!AICon) 
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] No AIController!"));
+		return;
+	}
+		
 
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
-	if (!NavSys) return;
+	if (!NavSys) {
+		UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] No NavSys!"));
+		return;
+	}
+
 
 	FNavLocation OutLocation;
+	if (!NavSys->GetRandomPointInNavigableRadius(InitialLocation, 500.f, OutLocation)) {
+		UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] NavSys failed to find point!"));
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] Found point: %s"), *OutLocation.Location.ToString());
+
 	if (NavSys->GetRandomPointInNavigableRadius(InitialLocation, 500.f, OutLocation))
 	{
+		float Dist = FVector::Dist(GetActorLocation(), OutLocation.Location);
+		if (Dist < 100.f) // prea aproape
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] Skipping move, distance too small: %f"), Dist);
+			return;
+		}
+
 		FAIMoveRequest MoveRequest;
 		MoveRequest.SetGoalLocation(OutLocation.Location);
 		MoveRequest.SetAcceptanceRadius(5.0f);
 
 		FNavPathSharedPtr NavPath;
-		AICon->MoveTo(MoveRequest, &NavPath);
+		EPathFollowingRequestResult::Type Result = AICon->MoveTo(MoveRequest, &NavPath);
+		UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] MoveToResult: %d"), (int)Result);
 
 		// DEBUG
 		DrawDebugSphere(GetWorld(), OutLocation.Location, 50.f, 12, FColor::Green, false, 3.0f);
 		UE_LOG(LogTemp, Warning, TEXT("Enemy moving to random location: %s"), *OutLocation.Location.ToString());
 	}
+
 }
 
 
@@ -386,7 +420,22 @@ void AEnemyBase::HandleWanderLogic()
 		AAIController* AICon = Cast<AAIController>(GetController());
 		if (AICon)
 		{
-			AICon->MoveToLocation(InitialLocation);
+			float Dist = FVector::Dist(GetActorLocation(), InitialLocation);
+			if (Dist < 100.f)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] Already at start, skipping return."));
+				WanderCount = 0;
+				return;
+			}
+
+			FAIMoveRequest MoveRequest;
+			MoveRequest.SetGoalLocation(InitialLocation);
+			MoveRequest.SetAcceptanceRadius(5.0f);
+
+			FNavPathSharedPtr NavPath;
+			EPathFollowingRequestResult::Type Result = AICon->MoveTo(MoveRequest, &NavPath);
+			UE_LOG(LogTemp, Warning, TEXT("[EnemyBase] Returning to start. MoveToResult: %d"), (int)Result);
+
 			WanderCount = 0;
 			return;
 		}
