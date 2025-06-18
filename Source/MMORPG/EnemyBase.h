@@ -89,27 +89,44 @@ public:
 	UFUNCTION()
 	void OnRep_CurrentHealth();
 	UFUNCTION()
-	void MoveRandomly();
+	void StartWander();
 	UFUNCTION()
-	void HandleWanderLogic();
+	void ResetWanderState();
 
 	bool bInitializedHealthBar = false;
 	FTimerHandle WanderTimerHandle;
-
 	FVector InitialLocation;
 
 	int32 WanderCount = 0;
 	int32 MaxWandersBeforeReturn = 4;
-
-	virtual void PossessedBy(AController* NewController) override;
-
+	UPROPERTY(EditAnywhere, Category = "AI")
+	float WanderCooldown = 5.0f;
+	float LastWanderTime = 0.0f;
 	UPROPERTY()
 	bool bIsWandering = false;
 
-	UPROPERTY()
-	AActor* RandomMoveTarget;
 
-	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	TSubclassOf<AActor> RandomTargetActorClass;
+	// attack the player
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float AttackRange = 200.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float AttackCooldown = 2.0f;
+
+	float LastAttackTime = -100.0f;
+
+	UFUNCTION()
+	void AttackPlayer();
+
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	UAnimMontage* AttackAnimation;
+
+	UPROPERTY()
+	ACharacter* CurrentTarget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UStaticMeshComponent* wep;
+
+	virtual void PostInitializeComponents() override;
+
 
 };
