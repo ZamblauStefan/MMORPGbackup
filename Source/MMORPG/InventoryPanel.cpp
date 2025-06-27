@@ -4,8 +4,8 @@
 #include "InventoryItem.h"
 #include "InventoryItemWidget.h"
 #include "ItemBase.h"
-#include "Components/UniformGridPanel.h"
-#include "Components/UniformGridSlot.h"
+#include "Components/WrapBox.h"
+#include "Components/WrapBoxSlot.h"
 
 void UInventoryPanel::BindToInventory(UInventoryComponent* InventoryComponent)
 {
@@ -20,14 +20,14 @@ void UInventoryPanel::BindToInventory(UInventoryComponent* InventoryComponent)
 void UInventoryPanel::RefreshInventory(const TArray<class UItemBase*>& Items)
 {
 
-	if (!GridPanel || !ItemWidgetClass)
+	if (!WrapPanel || !ItemWidgetClass)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[Inventory Panel] Problem with Grid/ItemWidget/InventoryComponent!"));
 		return;
 
 	}
 
-	GridPanel->ClearChildren();
+	WrapPanel->ClearChildren();
 
 	int32 Row = 0;
 	int32 Column = 0;
@@ -41,11 +41,9 @@ void UInventoryPanel::RefreshInventory(const TArray<class UItemBase*>& Items)
 			// dimensiune slot 
 			ItemWidget->SetDesiredSizeInViewport(FVector2D(64.f, 64.f));
 
-			if (UUniformGridSlot* GridSlot = GridPanel->AddChildToUniformGrid(ItemWidget, Row, Column))
+			if (UWrapBoxSlot* WrapSlot = Cast<UWrapBoxSlot>(WrapPanel->AddChild(ItemWidget)))
 			{
-				GridSlot->SetHorizontalAlignment(HAlign_Fill);
-				GridSlot->SetVerticalAlignment(VAlign_Fill);
-
+				WrapSlot->SetPadding(FMargin(2.f));
 
 				UE_LOG(LogTemp, Warning, TEXT("[InventoryPanel] Processing item: %s"), *Item->ItemID.ToString());
 
@@ -73,7 +71,6 @@ void UInventoryPanel::RefreshInventory(const TArray<class UItemBase*>& Items)
 void UInventoryPanel::NativeConstruct()
 {
 	Super::NativeConstruct();
-	
 
 	if (APawn* PlayerPawn = GetOwningPlayerPawn())
 	{

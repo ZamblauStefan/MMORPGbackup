@@ -17,6 +17,8 @@
 #include <Components/TextBlock.h>
 #include <NavigationSystem.h>
 #include "RandomMoveTarget.h"
+#include "QuestManager.h"
+#include "BuffTypes.h"
 
 
 
@@ -277,11 +279,6 @@ float AEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 {
 	CurrentHealth -= DamageAmount;
 
-	if (CurrentHealth <= 0)
-	{
-		Die();
-	}
-
 	// debug
 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("HP: %f"), CurrentHealth));
 
@@ -303,6 +300,11 @@ float AEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 		AddTaunt(DamagerCharacter, DamageAmount);
 	}
 
+	if (CurrentHealth <= 0)
+	{
+		Die();
+	}
+
 	HealthUpdate();
 	return DamageAmount;
 }
@@ -320,6 +322,11 @@ void AEnemyBase::Die()
 			if (PC)
 			{
 				PC->GainEXP(ExperienceGiven);
+
+				if (PC->QuestManager)
+				{
+					PC->QuestManager->RegisterEnemyKill();
+				}
 			}
 		}
 	}
@@ -427,7 +434,6 @@ void AEnemyBase::ResetWanderState()
 	bIsWandering = false;
 }
 
-
 void AEnemyBase::AttackPlayer()
 {
 	ACharacter* PlayerTarget = Cast<ACharacter>(CurrentTarget);
@@ -450,6 +456,21 @@ void AEnemyBase::AttackPlayer()
 
 		// Aplicare damage jucatorului
 		UGameplayStatics::ApplyDamage(PlayerTarget, 10.f, GetController(), this, nullptr);
+		
+		if (AThirdPersonMPCharacter* Target = Cast<AThirdPersonMPCharacter>(PlayerTarget))
+		{
+			FBuff Buff;
+			Buff.BuffName = FName("PhysicalAttackDebuff");
+			Buff.Duration = 5.f;
+
+			FStatModifier Mod;
+			Mod.Stat = EStatTypes::PhysicalAttack;
+			Mod.Amount = -10.f;
+
+			Buff.Modifiers.Add(Mod);
+
+			Target->AddBuff(Buff);
+		}
 
 		UE_LOG(LogTemp, Warning, TEXT("[Enemy] Attacked %s"), *PlayerTarget->GetName());
 	}

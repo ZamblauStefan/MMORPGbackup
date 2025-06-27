@@ -12,7 +12,9 @@
 #include "BuffTypes.h"
 #include "BasicHUD.h"
 #include "InteractionInterface.h"
+#include "ItemDataStructs.h"
 #include "ThirdPersonMPCharacter.generated.h"
+
 
 
 #define STAT_BIT(Stat) (1u << static_cast<uint8>(EStatTypes::Stat))
@@ -26,6 +28,7 @@ class AMainHUD;
 class AItemPickup;
 class UInventoryPanel;
 class AWeaponBase;
+class ABaseNPC;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
@@ -64,11 +67,8 @@ class MMORPG_API AThirdPersonMPCharacter : public ACharacter
 	/* Inventory-ul caracterului */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player", meta = (AllowPrivateAccess = "true"))
 	class UInventoryComponent* InventoryComp;
-
-
-	/* Questurile asociate caracterului */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player", meta = (AllowPrivateAccess = "true"))
-	class UQuestManager* QuestManager;
+	class UEquipmentComponent* EquipmentComponent;
 
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -98,6 +98,10 @@ class MMORPG_API AThirdPersonMPCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ToggleInventoryAction;
 
+	// toggle quests
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ToggleQuestsAction;
+
 	// Interact
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* InteractAction;
@@ -122,6 +126,8 @@ public:
 
 	// inventory
 	UInventoryComponent* GetInventoryComponent() const;
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	UEquipmentComponent* GetEquipmentComponent() const { return EquipmentComponent; }
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	UInventoryPanel* GetInventoryPanel() const;
@@ -147,6 +153,9 @@ public:
 	UFUNCTION()
 	void ToggleMouseVisibility();
 
+	/* Questurile asociate caracterului */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player", meta = (AllowPrivateAccess = "true"))
+	class UQuestManager* QuestManager;
 	
 	///////////////////////////////////////////////////
 	// Combat System
@@ -204,6 +213,19 @@ public:
 
 	// Combat System
 	///////////////////////////////////////////////////
+	///////////////////////////////////////////////////
+	// Interaction System
+
+	UPROPERTY()
+	ABaseNPC* FocusedNPC;
+
+	void PerformNPCInteractionCheck();
+	void HandleInteraction();
+
+
+	// Interaction System
+	///////////////////////////////////////////////////
+
 protected:
 
 	// lista buffs si debuffs
@@ -229,23 +251,17 @@ protected:
 	// toggle Inventory
 	UFUNCTION()
 	void ToggleInventory();
+	UFUNCTION()
+	void ToggleQuests();
 
 	//=====================
 	// interaction
 	UPROPERTY(VisibleAnywhere, Category = "Character | Interaction")
 	TScriptInterface<IInteractionInterface> TargetInteractable;
 
-	//UPROPERTY()
-	//AMainHUD* HUD;
-
-
-
 	float InteractionCheckFrequency;
-
 	float InteractionCheckDistance;
-
 	FTimerHandle TimerHandle_Interaction;
-
 	FInteractionData InteractionData;
 
 	void PerformInteractionCheck();
@@ -484,47 +500,36 @@ protected:
 	/* RepNotify for changes made to max health */
 	UFUNCTION()
 	void OnRep_MaxHealth();
-
 	/* RepNotify for changes made to current health */
 	UFUNCTION()
 	void OnRep_CurrentHealth();
-
 	/* RepNotify for changes made to health regen */
 	UFUNCTION()
 	void OnRep_HealthRegen();
-
 	/* RepNotify for changes made to health regen interval */
 	UFUNCTION()
 	void OnRep_HealthRegenInterval();
-
 	/* Functie apelata de timer pentru health regen */
 	UFUNCTION()
 	void RegenHealth();
-
 	/* RepNotify for changes made to max mana */
 	UFUNCTION()
 	void OnRep_MaxMana();
-
 	/* RepNotify for changes made to current mana */
 	UFUNCTION()
 	void OnRep_CurrentMana();
-
 	/* RepNotify for changes made to mana regen */
 	UFUNCTION()
 	void OnRep_ManaRegen();
-
 	/* RepNotify for changes made to mana regen interval */
 	UFUNCTION()
 	void OnRep_ManaRegenInterval();
-
 	/* Functie apelata de timer pentru health regen */
 	UFUNCTION()
 	void RegenMana();
-
 	/* RepNotify for changes made to max SkillStamina */
 	UFUNCTION()
 	void OnRep_MaxSkillStamina();
-
 	/* RepNotify for changes made to current SkillStamina */
 	UFUNCTION()
 	void OnRep_CurrentSkillStamina();
@@ -969,6 +974,10 @@ public:
 	void ResetAttackCooldown();
 	UFUNCTION()
 	void ResetMovementRestrictions();
+	UFUNCTION()
+	bool HasWeaponType(EWeaponType RequiredType);
+
+	void Recovery(float HPAmount, float MPAmount, float SPAmount);
 
 	UFUNCTION(BlueprintCallable, Category = "Progression")
 	void GainEXP(int32 Amount);

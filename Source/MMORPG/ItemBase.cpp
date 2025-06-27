@@ -34,6 +34,7 @@ UItemBase* UItemBase::CreateItemCopy()
 	ItemCopy->ItemID = this->ItemID;
 	ItemCopy->Quantity = this->Quantity;
 	ItemCopy->ItemType = this->ItemType;
+	ItemCopy->WeaponType = this->WeaponType;
 	ItemCopy->ItemQuality = this->ItemQuality;
 	ItemCopy->ItemStatistics = this->ItemStatistics;
 	ItemCopy->TextData = this->TextData;
@@ -52,20 +53,7 @@ UItemBase* UItemBase::CreateItemCopy()
 
 void UItemBase::SetQuantity(const int32 NewQuantity)
 {
-	/*
-	if (NewQuantity != Quantity)
-	{
-		Quantity = FMath::Clamp(NewQuantity, 0 , NumericData.bIsStackable ? NumericData.MaxStack : 1);
 
-		if (OwningInventory)
-		{
-			if (Quantity <= 0)
-			{
-				OwningInventory->RemoveItem(ItemID, Quantity);
-			}
-		}
-	}
-	*/
 }
 
 void UItemBase::Use(AThirdPersonMPCharacter* Character)
@@ -80,12 +68,12 @@ void UItemBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetim
 	DOREPLIFETIME(UItemBase, ItemID);
 	DOREPLIFETIME(UItemBase, Quantity);
 	DOREPLIFETIME(UItemBase, ItemType);
+	DOREPLIFETIME(UItemBase, WeaponType);
 	DOREPLIFETIME(UItemBase, ItemQuality);
 	DOREPLIFETIME(UItemBase, ItemStatistics);
 	DOREPLIFETIME(UItemBase, TextData);
 	DOREPLIFETIME(UItemBase, NumericData);
 	DOREPLIFETIME(UItemBase, AssetData);
-	//DOREPLIFETIME(UItemBase, OwningInventory);
 	DOREPLIFETIME(UItemBase, LevelRequirement);
 	DOREPLIFETIME(UItemBase, Tags);
 	DOREPLIFETIME(UItemBase, SpawnableActorClass);

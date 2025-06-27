@@ -1,12 +1,11 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 
+////// DEPRECATED - TO BE DELETED
+/*
 #pragma once
 
 #include "CoreMinimal.h"
 #include "QuestReward.h"
 #include "Quest_UStruct.generated.h"
-
-
 
 // Enum pentru statusul quest-ului
 UENUM(BlueprintType)
@@ -76,18 +75,4 @@ public:
 
 };
 
-
-
-
-
-
-/**
- * 
- 
-class MMORPG_API Quest_UStruct
-{
-public:
-	Quest_UStruct();
-	~Quest_UStruct();
-};
 */

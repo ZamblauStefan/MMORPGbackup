@@ -14,9 +14,16 @@ void UItemTooltip::NativeConstruct()
 
 void UItemTooltip::SetItemDetails(UItemBase* Item)
 {
-	if (!StatsBox || !Item) return;
+	if (!StatsBox || !Item)
+	{
+		UE_LOG(LogTemp, Error, TEXT("SetItemDetails: Item is NULL!"));
+		return;
+	}
 
 	StatsBox->ClearChildren();
+
+	ItemNameRTB->SetText(Item->TextData.DisplayName);
+	ItemDescriptionRTB->SetText(Item->TextData.Description);
 
 	auto AddStatIfNotZero = [this](const FString& StatName, float Value)
 		{

@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -21,6 +19,13 @@ class MMORPG_API UItemTooltip : public UUserWidget
 public:
 	UPROPERTY(meta = (BindWidget))
 	UVerticalBox* StatsBox;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* ItemNameRTB;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* ItemDescriptionRTB;
+
 
 	void SetItemDetails(UItemBase* Item);
 

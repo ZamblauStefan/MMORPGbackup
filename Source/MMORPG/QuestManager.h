@@ -1,16 +1,12 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Quest_UStruct.h"
+#include "Quest.h"
+#include "Components/ActorComponent.h"
 #include "QuestManager.generated.h"
 
-/**
- * 
- */
-UCLASS(Blueprintable)
-class MMORPG_API UQuestManager : public UObject
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+class MMORPG_API UQuestManager : public UActorComponent
 {
 
 	GENERATED_BODY()
@@ -19,33 +15,38 @@ class MMORPG_API UQuestManager : public UObject
 public:
 	UQuestManager();
 
+protected:
+	virtual void BeginPlay() override;
+
+public:
+
 	// Lista questurilor curente (pentru jucator)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Quest")
-	TArray<FQuest> PlayerQuests;
-
-	// Functie de adaugare a unui quest
-	UFUNCTION(BlueprintCallable, Category = "Quest")
-	void AddQuest(const FQuest& NewQuest);
-
-	// Functie de acceptare a unui quest, identificat prin ID
-	UFUNCTION(BlueprintCallable, Category = "Quest")
-	bool AcceptQuest(int32 QuestID);
+	TArray<FQuest> MainQuests;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Quests")
+	TArray<FQuest> SideQuests_Blacksmith;
+	// initializare questuri
+	UFUNCTION(BlueprintCallable)
+	void InitializeMainQuests();
+	UFUNCTION(BlueprintCallable)
+	void InitializeBlacksmithQuests();
 
 	// Functie de finalizare a unui quest, identificat prin ID
 	UFUNCTION(BlueprintCallable, Category = "Quest")
-	bool CompleteQuest(int32 QuestID);
+	void CompleteQuest(int32 QuestID, bool bIsMain);
 
+	UFUNCTION(BlueprintCallable)
+	FQuest GetActiveQuest();
+	UFUNCTION(BlueprintCallable)
+	FQuest GetBlacksmithActiveQuest();
 
-
+	UFUNCTION(BlueprintCallable)
+	int32 GetCurrentQuestIndex() const;
+	UFUNCTION(BlueprintCallable)
+	int32 GetCurrentBlacksmithQuestIndex() const;
+	UFUNCTION(BlueprintCallable)
+	void RegisterEnemyKill();
 	// TODO add new functions (verificare stare, listare questuri)
 
-
-
-
-
-/*
-QuestManager();
-~QuestManager();
-*/
-
 };
+

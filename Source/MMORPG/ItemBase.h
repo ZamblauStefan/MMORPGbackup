@@ -28,6 +28,8 @@ public:
 	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	EItemType ItemType;
 	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
+	EWeaponType WeaponType;
+	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	EItemQuality ItemQuality;
 	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	FItemStatistics ItemStatistics;
@@ -51,6 +53,9 @@ public:
 	int32 MaxDurability;
 	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	float Cooldown;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+	UAnimMontage* WeaponAttackMontage;
+
 
 	// delegate pentru use
 	DECLARE_DELEGATE_OneParam(FOnUseItem, AActor* /* User */);

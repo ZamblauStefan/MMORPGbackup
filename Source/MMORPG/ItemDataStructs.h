@@ -6,6 +6,16 @@
 #include "ItemPickup.h"
 #include "ItemDataStructs.generated.h"
 
+UENUM()
+enum class EWeaponType : uint8
+{
+	None      UMETA(DisplayName = "None"),
+	Sword     UMETA(DisplayName = "Sword"),
+	Staff     UMETA(DisplayName = "Staff"),
+	Bow       UMETA(DisplayName = "Bow")
+	
+};
+
 
 UENUM()
 enum class EItemQuality : uint8
@@ -26,6 +36,9 @@ UENUM()
 enum class EItemType : uint8
 {
 	Armor UMETA(DisplayName = "Armor"),
+	Helmet UMETA(DisplayName = "Helmet"),
+	Gloves UMETA(DisplayName = "Gloves"),
+	Boots UMETA(DisplayName = "Boots"),
 	Weapon UMETA(DisplayName = "Weapon"),
 	Shield UMETA(DisplayName = "Shield"),
 	Spell UMETA(DisplayName = "Spell"),
@@ -152,6 +165,8 @@ struct FItemData : public FTableRowBase
 	FName ItemID;
 	UPROPERTY(EditAnywhere, Category = "Item Data")
 	EItemType ItemType;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	EWeaponType WeaponType = EWeaponType::None;
 	UPROPERTY(EditAnywhere, Category = "Item Data")
 	EItemQuality ItemQuality;
 	UPROPERTY(EditAnywhere, Category = "Item Data")
@@ -162,6 +177,9 @@ struct FItemData : public FTableRowBase
 	FItemNumericData NumericData;
 	UPROPERTY(EditAnywhere, Category = "Item Data")
 	FItemAssetData AssetData;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* WeaponAttackMontage;
+
 
 	// requirements
 	UPROPERTY(EditAnywhere, Category = "Item Data")

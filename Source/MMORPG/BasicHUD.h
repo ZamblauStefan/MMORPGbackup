@@ -8,6 +8,7 @@
 
 class UInventoryPanel;
 class UInventoryComponent;
+class UEquipmentPanel;
 
 UCLASS()
 class MMORPG_API UBasicHUD : public UUserWidget
@@ -23,18 +24,28 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UInventoryPanel* InventoryPanel;
 
+	UPROPERTY(meta = (BindWidget))
+	UEquipmentPanel* EquipmentPanel;
+
 	UFUNCTION(BlueprintCallable)
 	void ToggleCharacterDetails();
 	UFUNCTION(BlueprintCallable)
 	void ToggleInventory();
+
+	UPROPERTY()
+	UUserWidget* QuestWidget;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> QuestWidgetClass;
+
+	UFUNCTION(BlueprintCallable)
+	void ToggleQuestLog();
+
 
 	// Functie pentru legarea delegate-ului
 	void BindInventoryToUI(UInventoryComponent* InventoryComponent);
 
 	void NativeConstruct();
 
-	 // Iniaializare InventoryPanel cand HUD-ul e creat
-	//UFUNCTION(BlueprintCallable)
-	//void InitializeInventory(UInventoryComponent* PlayerInventory);
 
 };

@@ -13,7 +13,7 @@ void AMyPlayerController::BeginPlay()
 
     if (IsLocalController() && BasicHUDClass)
     {
-        // Creeaza widget-ul de HUD folosind controller-ul curent ca owner
+        // creeaza widget-ul de HUD folosind controller-ul curent ca owner
         BasicHUDWidget = CreateWidget<UBasicHUD>(this, BasicHUDClass);
         if (BasicHUDWidget)
         {
@@ -57,5 +57,19 @@ void AMyPlayerController::ToggleInventory()
     else
     {
         UE_LOG(LogTemp, Warning, TEXT("MyPC: BasicHUDWidget e null in ToggleInventory"));
+    }
+}
+
+void AMyPlayerController::ToggleQuests()
+{
+    UE_LOG(LogTemp, Warning, TEXT("[MyPlayerController] Apel: AMyPlayerController::ToggleQuests()"));
+
+    if (BasicHUDWidget)
+    {
+        BasicHUDWidget->ToggleQuestLog();
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[MyPlayerController] BasicHUDWidget e null in ToggleQuests"));
     }
 }

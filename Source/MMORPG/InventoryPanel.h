@@ -4,7 +4,9 @@
 #include "Blueprint/UserWidget.h"
 #include "InventoryPanel.generated.h"
 
+
 class UUniformGridPanel;
+class UWrapBox;
 class UInventoryComponent;
 //class UInventoryItem;
 class UInventoryItemWidget;
@@ -32,7 +34,7 @@ public:
 protected:
 
 	UPROPERTY(meta = (BindWidget))
-	UUniformGridPanel* GridPanel;
+	UWrapBox* WrapPanel;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UInventoryItemWidget> ItemWidgetClass;

@@ -47,32 +47,9 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void Client_AddItem(const FItemData& ItemRow, int32 Quantity);
-
-/*
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	bool RemoveItem(FName ItemID, int32 Quantity = 1);
+	void RemoveItem(UItemBase* Item, int32 Quantity);
 
-	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	UItemBase* GetItem(FName ItemID) const;
-
-	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	bool HasItem(FName ItemID, int32 Quantity = 1) const;
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_AddItem(UItemBase* NewItem);
-	void Server_AddItem_Implementation(UItemBase* NewItem);
-	bool Server_AddItem_Validate(UItemBase* NewItem) { return true; }
-
-	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	void DropItem(FName ItemID, int32 Quantity = 1);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_DropItem(FName ItemID, int32 Quantity);
-	void Server_DropItem_Implementation(FName ItemID, int32 Quantity);
-	bool Server_DropItem_Validate(FName ItemID, int32 Quantity) { return true; }
-
-	UItemBase* FindItemByID(FName ItemID) const;
-*/
 
 	// Called every frame
 	//virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;

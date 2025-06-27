@@ -22,6 +22,8 @@
 #include "InventoryPanel.h"
 #include "Kismet/GameplayStatics.h"
 #include "WeaponBase.h"
+#include "Quest.h"
+#include "EquipmentComponent.h"
 
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -61,6 +63,7 @@ AThirdPersonMPCharacter::AThirdPersonMPCharacter()
 
 	// initializare inventory component
 	InventoryComp = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
+	EquipmentComponent = CreateDefaultSubobject<UEquipmentComponent>(TEXT("EquipmentComponent"));
 
 	// setam distanta maxima (in unitati UE) la care se va replica actorul
 	const float CullRadius = 2000.f;
@@ -123,11 +126,8 @@ AThirdPersonMPCharacter::AThirdPersonMPCharacter()
 	// Crearea componentei LifeSkills
 	LifeSkillsComp = CreateDefaultSubobject<ULifeSkillsComponent>(TEXT("LifeSkillsComponent"));
 
-
-/*
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-*/
+	// componenta de questuri
+	QuestManager = CreateDefaultSubobject<UQuestManager>(TEXT("QuestManager"));
 
 }
 
@@ -159,37 +159,29 @@ void AThirdPersonMPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		// Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AThirdPersonMPCharacter::CustomJump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AThirdPersonMPCharacter::CustomStopJumping);
-
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AThirdPersonMPCharacter::Move);
-
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AThirdPersonMPCharacter::Look);
-
 		// Fire1
 		EnhancedInputComponent->BindAction(Fire1Action, ETriggerEvent::Started, this, &AThirdPersonMPCharacter::StartFire);
 		EnhancedInputComponent->BindAction(Fire1Action, ETriggerEvent::Completed, this, &AThirdPersonMPCharacter::StopFire);
-
 		// Toggle Character Details Window
 		EnhancedInputComponent->BindAction(ToggleDetailsAction, ETriggerEvent::Started, this, &AThirdPersonMPCharacter::ToggleCharacterDetails);
 		// Toggle pentru inventory
 		EnhancedInputComponent->BindAction(ToggleInventoryAction, ETriggerEvent::Started, this, &AThirdPersonMPCharacter::ToggleInventory);
-
 		// Interact Binding "R" key for now
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AThirdPersonMPCharacter::BeginInteract);
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &AThirdPersonMPCharacter::EndInteract);
-
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AThirdPersonMPCharacter::HandleInteraction);
 		// Input for combat BasicAttacks (left click)
 		EnhancedInputComponent->BindAction(BasicAttack, ETriggerEvent::Started, this, &AThirdPersonMPCharacter::MeleeAttack);
 		// Input for mouse visibility toggle
 		EnhancedInputComponent->BindAction(MouseVisibility, ETriggerEvent::Started, this, &AThirdPersonMPCharacter::ToggleMouseVisibility);
-
-
-
+		// Toggle pentru inventory
+		EnhancedInputComponent->BindAction(ToggleQuestsAction, ETriggerEvent::Started, this, &AThirdPersonMPCharacter::ToggleQuests);
 	}
 	else
 	{
-		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
+		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component!"), *GetNameSafe(this));
 	}
 }
 
@@ -217,7 +209,6 @@ void AThirdPersonMPCharacter::Move(const FInputActionValue& Value)
 		AddMovementInput(RightDirection, MovementVector.X);
 	}
 }
-
 void AThirdPersonMPCharacter::Look(const FInputActionValue& Value)
 {
 	// input is a Vector2D
@@ -230,7 +221,6 @@ void AThirdPersonMPCharacter::Look(const FInputActionValue& Value)
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
 }
-
 void AThirdPersonMPCharacter::ToggleCharacterDetails()
 {
 	if (AMyPlayerController* PC = Cast<AMyPlayerController>(GetController()))
@@ -238,7 +228,6 @@ void AThirdPersonMPCharacter::ToggleCharacterDetails()
 		PC->ToggleCharacterDetails();
 	}
 }
-
 void AThirdPersonMPCharacter::ToggleInventory()
 {
 	if (AMyPlayerController* PC = Cast<AMyPlayerController>(GetController()))
@@ -246,10 +235,42 @@ void AThirdPersonMPCharacter::ToggleInventory()
 		PC->ToggleInventory();
 	}
 }
+void AThirdPersonMPCharacter::ToggleQuests()
+{
+	UE_LOG(LogTemp, Warning, TEXT("[ThirdPersonMPCharacter] tasta J apasata!"));
+	if (AMyPlayerController* PC = Cast<AMyPlayerController>(GetController()))
+	{
+		PC->ToggleQuests();
+	}
+}
+void AThirdPersonMPCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	PerformNPCInteractionCheck();
 
+	/*
+	static FString LastQuestName;
+	if (QuestManager)
+	{
+		
+		FQuest Quest = QuestManager->GetActiveQuest();
+
+		FString CurrentName = Quest.QuestName;
+
+		if (Quest.QuestStatus == EQuestStatus::InProgress && CurrentName != LastQuestName)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan,
+				FString::Printf(TEXT("Quest activ: %s"), *CurrentName));
+
+			LastQuestName = CurrentName;
+		}
+	}
+	*/
+
+}
 
 //////////////////////////////////////////////////////////
-// interact
+// interact /old
 void AThirdPersonMPCharacter::PerformInteractionCheck()
 {
 	InteractionData.LastInteractionCheckTime = GetWorld()->GetTimeSeconds();
@@ -293,7 +314,6 @@ void AThirdPersonMPCharacter::PerformInteractionCheck()
 	NoInteractableFound();
 
 }
-
 void AThirdPersonMPCharacter::FoundInteractable(AActor* NewInteractable)
 {
 	if (IsInteracting())
@@ -315,7 +335,6 @@ void AThirdPersonMPCharacter::FoundInteractable(AActor* NewInteractable)
 	TargetInteractable->BeginFocus();
 
 }
-
 void AThirdPersonMPCharacter::NoInteractableFound()
 {
 	if (IsInteracting())
@@ -337,7 +356,6 @@ void AThirdPersonMPCharacter::NoInteractableFound()
 	}
 
 }
-
 void AThirdPersonMPCharacter::BeginInteract()
 {
 	// verify nothing has changed with the interactable state since beginning interaction
@@ -365,7 +383,6 @@ void AThirdPersonMPCharacter::BeginInteract()
 	}
 
 }
-
 void AThirdPersonMPCharacter::EndInteract()
 {
 
@@ -378,7 +395,48 @@ void AThirdPersonMPCharacter::EndInteract()
 
 }
 
-// inventory and interact
+// new
+void AThirdPersonMPCharacter::PerformNPCInteractionCheck()
+{
+	if (!FollowCamera) return;
+	FVector Start = FollowCamera->GetComponentLocation();
+	FVector End = Start + (FollowCamera->GetForwardVector() * 500.f);
+
+	FHitResult HitResult;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params))
+	{
+		ABaseNPC* HitNPC = Cast<ABaseNPC>(HitResult.GetActor());
+
+		if (HitNPC && FVector::Dist(GetActorLocation(), HitNPC->GetActorLocation()) <= 200.f)
+		{
+			FocusedNPC = HitNPC;
+			return;
+		}
+	}
+
+	FocusedNPC = nullptr;
+}
+
+void AThirdPersonMPCharacter::HandleInteraction()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("Tasta R apasata!"));
+
+	if (FocusedNPC)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, TEXT("NPC gasit, apelez Interact()"));
+		FocusedNPC->Interact();
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, TEXT("Niciun NPC focusat"));
+	}
+}
+
+
+// inventory
 
 UInventoryComponent* AThirdPersonMPCharacter::GetInventoryComponent() const
 {
@@ -446,21 +504,6 @@ void AThirdPersonMPCharacter::Server_PickupItem_Implementation(AItemPickup* Item
 
 
 
-
-
-
-void AThirdPersonMPCharacter::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-
-	if (GetWorld()->TimeSince(InteractionData.LastInteractionCheckTime) > InteractionCheckFrequency)
-	{
-		PerformInteractionCheck();
-	}
-}
-
-
-
 // interact
 //////////////////////////////////////////////////////////
 
@@ -470,6 +513,8 @@ void AThirdPersonMPCharacter::Tick(float DeltaSeconds)
 void AThirdPersonMPCharacter::GetLifetimeReplicatedProps(TArray <FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	UE_LOG(LogTemp, Warning, TEXT("GetLifetimeReplicatedProps called"));
 
 	// Replicate BaseStats
 	DOREPLIFETIME_CONDITION(AThirdPersonMPCharacter, BaseMaxHealth, COND_OwnerOnly);
@@ -649,7 +694,19 @@ void AThirdPersonMPCharacter::OnBaseMagicalDefenseUpdate()
 /////////////////////////////////
 void AThirdPersonMPCharacter::OnMaxHealthUpdate()
 {
-	// nothing yet
+	//Client-specific functionality
+	if (IsLocallyControlled())
+	{
+		FString MaxhealthMessage = FString::Printf(TEXT("You now have %f max health."), MaxHealth);
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, MaxhealthMessage);
+	}
+
+	//Server-specific functionality
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		FString MaxhealthMessage = FString::Printf(TEXT("%s now has %f max health."), *GetFName().ToString(), MaxHealth);
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, MaxhealthMessage);
+	}
 }
 void AThirdPersonMPCharacter::OnCurrentHealthUpdate()
 {
@@ -900,6 +957,7 @@ void AThirdPersonMPCharacter::OnLuckUpdate()
 void AThirdPersonMPCharacter::OnRep_BaseMaxHealth()
 {
 	// aici
+	UE_LOG(LogTemp, Warning, TEXT("OnRep_MaxHealth triggered: %f"), MaxHealth);
 	OnBaseMaxHealthUpdate();
 }
 void AThirdPersonMPCharacter::OnRep_BaseHealthRegen()
@@ -965,6 +1023,7 @@ void AThirdPersonMPCharacter::OnRep_BasePhysicalAttack()
 void AThirdPersonMPCharacter::OnRep_BasePhysicalDefense()
 {
 	// aici
+	UE_LOG(LogTemp, Warning, TEXT("OnRep_BasePhysicalDefense triggered: %f"), PhysicalDefense);
 	OnBasePhysicalDefenseUpdate();
 }
 void AThirdPersonMPCharacter::OnRep_BaseMagicalAttack()
@@ -1011,6 +1070,11 @@ void AThirdPersonMPCharacter::OnRep_BaseLuck()
 void AThirdPersonMPCharacter::OnRep_MaxHealth()
 {
 	// aici
+	if (IsLocallyControlled())
+	{
+		FString msg = FString::Printf(TEXT("Max Health updated: %f"), MaxHealth);
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, msg);
+	}
 	OnMaxHealthUpdate();
 }
 void AThirdPersonMPCharacter::OnRep_CurrentHealth()
@@ -1096,6 +1160,13 @@ void AThirdPersonMPCharacter::OnRep_PhysicalAttack()
 void AThirdPersonMPCharacter::OnRep_PhysicalDefense()
 {
 	// aici
+	if (IsLocallyControlled())
+	{
+		// UE_LOG(LogTemp, Warning, TEXT("OnRep_PhysicalDefense triggered: %f"), PhysicalDefense);
+
+		FString msg = FString::Printf(TEXT("Physical Defense updated: %f"), PhysicalDefense);
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, msg);
+	}
 	OnPhysicalDefenseUpdate();
 }
 void AThirdPersonMPCharacter::OnRep_MagicalAttack()
@@ -1482,6 +1553,8 @@ void AThirdPersonMPCharacter::SetPhysicalDefense(float defenseValue)
 {
 	if (GetLocalRole() == ROLE_Authority)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("SetPhysicalDefense called. PhysicalDefense=%f"), defenseValue);
+
 		PhysicalDefense = defenseValue;
 	}
 }
@@ -1506,6 +1579,8 @@ void AThirdPersonMPCharacter::SetConstitution(int statValue)
 {
 	if (GetLocalRole() == ROLE_Authority)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("SetConstitution called. Constitution=%d"), statValue);
+
 		Constitution = statValue;
 	}
 
@@ -1558,8 +1633,10 @@ void AThirdPersonMPCharacter::UpdateMaxHealth()
 {
 	// the actual Update
 	float NewMaxHealth = BaseMaxHealth;
-	// add Max Health from items - not yet implemented
+	// add Max Health from items 
+	NewMaxHealth += EquipmentComponent->StatsTotals.BonusMaxHealth;
 	// add Max Health from passive skills - not yet implemented
+
 	// add max health from buffs/debuffs
 	NewMaxHealth += 10 * Constitution;
 	for (auto& B : ActiveBuffs)
@@ -1576,6 +1653,7 @@ void AThirdPersonMPCharacter::UpdateCurrentHealth()
 void AThirdPersonMPCharacter::UpdateHealthRegen()
 {
 	float NewHealthRegen = BaseHealthRegen;
+	NewHealthRegen += EquipmentComponent->StatsTotals.BonusHealthRegen;
 	NewHealthRegen += Constitution / 10;
 
 	for (auto& B : ActiveBuffs)
@@ -1597,6 +1675,7 @@ void AThirdPersonMPCharacter::UpdateHealthRegenInterval()
 void AThirdPersonMPCharacter::UpdateMaxMana()
 {
 	float NewMaxMana = BaseMaxMana;
+	NewMaxMana += EquipmentComponent->StatsTotals.BonusMaxMana;
 	NewMaxMana += (Intelligence * 2) + (Wisdom * 3);
 	for (auto& B : ActiveBuffs)
 		for (auto& Mod : B.Definition.Modifiers)
@@ -1612,6 +1691,7 @@ void AThirdPersonMPCharacter::UpdateCurrentMana()
 void AThirdPersonMPCharacter::UpdateManaRegen()
 {
 	float NewManaRegen = BaseManaRegen;
+	NewManaRegen += EquipmentComponent->StatsTotals.BonusManaRegen;
 	NewManaRegen += (Intelligence / 10) + (Wisdom / 10);
 	for (auto& B : ActiveBuffs)
 		for (auto& Mod : B.Definition.Modifiers)
@@ -1634,6 +1714,7 @@ void AThirdPersonMPCharacter::UpdateManaRegenInterval()
 void AThirdPersonMPCharacter::UpdateMaxSkillStamina()
 {
 	float NewMaxSkillStamina = BaseMaxSkillStamina;
+	NewMaxSkillStamina += EquipmentComponent->StatsTotals.BonusMaxSkillStamina;
 	NewMaxSkillStamina += Dexterity * 5;
 	for (auto& B : ActiveBuffs)
 		for (auto& Mod : B.Definition.Modifiers)
@@ -1649,6 +1730,7 @@ void AThirdPersonMPCharacter::UpdateCurrentSkillStamina()
 void AThirdPersonMPCharacter::UpdateSkillStaminaRegen()
 {
 	float NewSkillStaminaRegen = BaseSkillStaminaRegen;
+	NewSkillStaminaRegen += EquipmentComponent->StatsTotals.BonusSkillStaminaRegen;
 	NewSkillStaminaRegen += Dexterity / 10;
 	for (auto& B : ActiveBuffs)
 		for (auto& Mod : B.Definition.Modifiers)
@@ -1671,6 +1753,7 @@ void AThirdPersonMPCharacter::UpdateSkillStaminaRegenInterval()
 void AThirdPersonMPCharacter::UpdateMaxMovementStamina()
 {
 	float NewMaxMovementStamina = BaseMaxMovementStamina;
+	NewMaxMovementStamina += EquipmentComponent->StatsTotals.BonusMaxMovementStamina;
 	NewMaxMovementStamina += (Constitution * 3) + (Dexterity / 2);
 	for (auto& B : ActiveBuffs)
 		for (auto& Mod : B.Definition.Modifiers)
@@ -1686,6 +1769,7 @@ void AThirdPersonMPCharacter::UpdateCurrentMovementStamina()
 void AThirdPersonMPCharacter::UpdateMovementStaminaRegen()
 {
 	float NewMovementStaminaRegen = BaseSkillStaminaRegen;
+	NewMovementStaminaRegen += EquipmentComponent->StatsTotals.BonusMovementStaminaRegen;
 	NewMovementStaminaRegen += (Constitution / 10) + (Dexterity / 20);
 	for (auto& B : ActiveBuffs)
 		for (auto& Mod : B.Definition.Modifiers)
@@ -1708,6 +1792,7 @@ void AThirdPersonMPCharacter::UpdateMovementStaminaRegenInterval()
 void AThirdPersonMPCharacter::UpdatePhysicalAttack()
 {
 	float NewPhysicalAttack = BasePhysicalAttack;
+	NewPhysicalAttack += EquipmentComponent->StatsTotals.BonusPhysicalAttack;
 	NewPhysicalAttack += (Strength * 5) + (Dexterity * 2);
 	for (auto& B : ActiveBuffs)
 		for (auto& Mod : B.Definition.Modifiers)
@@ -1719,6 +1804,7 @@ void AThirdPersonMPCharacter::UpdatePhysicalAttack()
 void AThirdPersonMPCharacter::UpdateMagicalAttack()
 {
 	float NewMagicalAttack = BaseMagicalAttack;
+	NewMagicalAttack += EquipmentComponent->StatsTotals.BonusMagicalAttack;
 	NewMagicalAttack += (Intelligence * 5) + (Wisdom * 2);
 	for (auto& B : ActiveBuffs)
 		for (auto& Mod : B.Definition.Modifiers)
@@ -1730,17 +1816,21 @@ void AThirdPersonMPCharacter::UpdateMagicalAttack()
 void AThirdPersonMPCharacter::UpdatePhysicalDefense()
 {
 	float NewPhysicalDefense = BasePhysicalDefense;
+	NewPhysicalDefense += EquipmentComponent->StatsTotals.BonusPhysicalDefense;
 	NewPhysicalDefense += 5 * Constitution;
 	for (auto& B : ActiveBuffs)
 		for (auto& Mod : B.Definition.Modifiers)
 			if (Mod.Stat == EStatTypes::PhysicalDefense)
 				NewPhysicalDefense += Mod.Amount;
 
+	UE_LOG(LogTemp, Warning, TEXT("UpdatePhysicalDefense called. New PhysicalDefense=%f"), NewPhysicalDefense);
+
 	SetPhysicalDefense(NewPhysicalDefense);
 }
 void AThirdPersonMPCharacter::UpdateMagicalDefense()
 {
 	float NewMagicalDefense = BaseMagicalDefense;
+	NewMagicalDefense += EquipmentComponent->StatsTotals.BonusMagicalDefense;
 	NewMagicalDefense += 5 * Wisdom;
 	for (auto& B : ActiveBuffs)
 		for (auto& Mod : B.Definition.Modifiers)
@@ -1749,11 +1839,10 @@ void AThirdPersonMPCharacter::UpdateMagicalDefense()
 
 	SetMagicalDefense(NewMagicalDefense);
 }
-
-
 void AThirdPersonMPCharacter::UpdateStrength()
 {
 	float NewStrength = BaseStrength;
+	NewStrength += EquipmentComponent->StatsTotals.BonusStrength;
 	for (auto& B : ActiveBuffs)
 		for (auto& Mod : B.Definition.Modifiers)
 			if (Mod.Stat == EStatTypes::Strength)
@@ -1765,10 +1854,13 @@ void AThirdPersonMPCharacter::UpdateStrength()
 void AThirdPersonMPCharacter::UpdateConstitution()
 {
 	float NewConstitution = BaseConstitution;
+	NewConstitution += EquipmentComponent->StatsTotals.BonusConstitution;
 	for (auto& B : ActiveBuffs)
 		for (auto& Mod : B.Definition.Modifiers)
 			if (Mod.Stat == EStatTypes::Constitution)
 				NewConstitution += Mod.Amount;
+
+	UE_LOG(LogTemp, Warning, TEXT("UpdateConstitution called. New Constitution=%f"), NewConstitution);
 
 	SetConstitution(NewConstitution);
 	UpdateMaxHealth();
@@ -1782,6 +1874,7 @@ void AThirdPersonMPCharacter::UpdateConstitution()
 void AThirdPersonMPCharacter::UpdateDexterity()
 {
 	float NewDexterity = BaseDexterity;
+	NewDexterity += EquipmentComponent->StatsTotals.BonusDexterity;
 	for (auto& B : ActiveBuffs)
 		for (auto& Mod : B.Definition.Modifiers)
 			if (Mod.Stat == EStatTypes::Dexterity)
@@ -1801,6 +1894,7 @@ void AThirdPersonMPCharacter::UpdateDexterity()
 void AThirdPersonMPCharacter::UpdateIntelligence()
 {
 	float NewIntelligence = BaseIntelligence;
+	NewIntelligence += EquipmentComponent->StatsTotals.BonusIntelligence;
 	for (auto& B : ActiveBuffs)
 		for (auto& Mod : B.Definition.Modifiers)
 			if (Mod.Stat == EStatTypes::Intelligence)
@@ -1815,6 +1909,7 @@ void AThirdPersonMPCharacter::UpdateIntelligence()
 void AThirdPersonMPCharacter::UpdateWisdom()
 {
 	float NewWisdom = BaseWisdom;
+	NewWisdom += EquipmentComponent->StatsTotals.BonusWisdom;
 	for (auto& B : ActiveBuffs)
 		for (auto& Mod : B.Definition.Modifiers)
 			if (Mod.Stat == EStatTypes::Wisdom)
@@ -1829,6 +1924,7 @@ void AThirdPersonMPCharacter::UpdateWisdom()
 void AThirdPersonMPCharacter::UpdateLuck()
 {
 	float NewLuck = BaseLuck;
+	NewLuck += EquipmentComponent->StatsTotals.BonusLuck;
 	for (auto& B : ActiveBuffs)
 		for (auto& Mod : B.Definition.Modifiers)
 			if (Mod.Stat == EStatTypes::Luck)
@@ -1843,18 +1939,12 @@ void AThirdPersonMPCharacter::UpdateLuck()
 // Update All Stats ( not STR, DEX, CON, INT, WIS, LUCK)
 void AThirdPersonMPCharacter::UpdateAll()
 {
-	UpdateMaxHealth();
-	UpdateHealthRegen();
-	UpdateHealthRegenInterval();
-	UpdateMaxMana();
-	UpdateManaRegen();
-	UpdateManaRegenInterval();
-	UpdateMaxSkillStamina();
-	UpdateSkillStaminaRegen();
-	UpdateSkillStaminaRegenInterval();
-	UpdateMaxMovementStamina();
-	UpdateMovementStaminaRegen();
-	UpdateMovementStaminaRegenInterval();
+	UpdateStrength();
+	UpdateConstitution();
+	UpdateDexterity();
+	UpdateIntelligence();
+	UpdateWisdom();
+	UpdateLuck();
 
 }
 void AThirdPersonMPCharacter::FlushDirtyStats()
@@ -1980,6 +2070,25 @@ void AThirdPersonMPCharacter::AddBuff(const FBuff& NewBuff)
 	if (!HasAuthority())
 		return;
 
+	// verificare daca buff-ul exista deja
+	for (FActiveBuff& AB : ActiveBuffs)
+	{
+		if (AB.Definition.BuffName == NewBuff.BuffName)
+		{
+			// resetare timer
+			GetWorld()->GetTimerManager().ClearTimer(AB.ExpirationHandle);
+
+			FTimerDelegate Del;
+			Del.BindUFunction(this, FName("RemoveBuff"), NewBuff.BuffName);
+			GetWorld()->GetTimerManager().SetTimer(AB.ExpirationHandle, Del, NewBuff.Duration, false);
+
+			UE_LOG(LogTemp, Warning, TEXT("Buff %s refreshed."), *NewBuff.BuffName.ToString());
+			return;
+		}
+	}
+
+
+
 	// creare intrare FActiveBuff
 	FActiveBuff AB;
 	AB.Definition = NewBuff;
@@ -1990,6 +2099,8 @@ void AThirdPersonMPCharacter::AddBuff(const FBuff& NewBuff)
 	Del.BindUFunction(this, FName("RemoveBuff"), NewBuff.BuffName);
 	GetWorld()->GetTimerManager().SetTimer(AB.ExpirationHandle, Del, NewBuff.Duration, false);
 
+	UE_LOG(LogTemp, Warning, TEXT("Added Buff: %s with duration %.2f"), *NewBuff.BuffName.ToString(), NewBuff.Duration);
+
 	// marcare recalculare stat
 	for (auto& Mod : NewBuff.Modifiers)
 	{
@@ -1997,11 +2108,14 @@ void AThirdPersonMPCharacter::AddBuff(const FBuff& NewBuff)
 		DirtyFlags |= (1u << static_cast<uint8>(Mod.Stat));
 	}
 	FlushDirtyStats();
+
+	UpdateAll();
 }
 
 void AThirdPersonMPCharacter::RemoveBuff(FName BuffName)
 {
 	if (!HasAuthority()) return;
+	UE_LOG(LogTemp, Warning, TEXT("Trying to remove Buff: %s"), *BuffName.ToString());
 
 	// cautare si scoatere buff din lista ActiveBuffs
 	for (int32 i = ActiveBuffs.Num() - 1; i >= 0; i--)
@@ -2010,6 +2124,8 @@ void AThirdPersonMPCharacter::RemoveBuff(FName BuffName)
 		{
 			// anulare timer
 			GetWorld()->GetTimerManager().ClearTimer(ActiveBuffs[i].ExpirationHandle);
+
+			UE_LOG(LogTemp, Warning, TEXT("Checking ActiveBuff: %s"), *ActiveBuffs[i].Definition.BuffName.ToString());
 
 			// remove buff
 			ActiveBuffs.RemoveAt(i);
@@ -2022,6 +2138,8 @@ void AThirdPersonMPCharacter::RemoveBuff(FName BuffName)
 		for (auto& Mod : AB.Definition.Modifiers)
 			DirtyFlags |= (1u << static_cast<uint8>(Mod.Stat));
 	FlushDirtyStats();
+
+	UpdateAll();
 
 }
 
@@ -2039,6 +2157,8 @@ void AThirdPersonMPCharacter::ServerAddConstitutionPoint_Implementation()
 {
 	if (AvailableStatPoints > 0)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("ServerAddConstitutionPoint called. BaseConstitution=%f"), BaseConstitution);
+
 		AvailableStatPoints--;
 		BaseConstitution++;
 		UpdateConstitution();
@@ -2080,22 +2200,6 @@ void AThirdPersonMPCharacter::ServerAddLuckPoint_Implementation()
 		UpdateLuck();
 	}
 }
-
-
-
-
-/* Folosire Consume Mana
-if (ConsumeMana(25.f))
-{
-	// mana scazuta cu 25 → lanseaza abilitatea
-}
-else
-{
-	// nu e suficient mana → feedback jucator
-}
-
-
-*/
 
 void AThirdPersonMPCharacter::StartFire()
 {
@@ -2159,7 +2263,6 @@ void AThirdPersonMPCharacter::OnEXPChanged()
 {
 
 }
-
 void AThirdPersonMPCharacter::OnRep_CurrentEXP()
 {
 	if (IsLocallyControlled())
@@ -2167,7 +2270,6 @@ void AThirdPersonMPCharacter::OnRep_CurrentEXP()
 		// notificare UI
 	}
 }
-
 void AThirdPersonMPCharacter::OnRep_EXPToNextLevel()
 {
 	if (IsLocallyControlled())
@@ -2175,7 +2277,6 @@ void AThirdPersonMPCharacter::OnRep_EXPToNextLevel()
 		// notificare UI
 	}
 }
-
 void AThirdPersonMPCharacter::OnRep_Level()
 {
 	if (IsLocallyControlled())
@@ -2183,7 +2284,6 @@ void AThirdPersonMPCharacter::OnRep_Level()
 		// notificare UI
 	}
 }
-
 void AThirdPersonMPCharacter::OnRep_AvailableStatPoints()
 {
 	// notificare UI
@@ -2210,16 +2310,7 @@ void AThirdPersonMPCharacter::LevelUp()
 	BaseLuck += 1;
 
 	// recalculare stats
-	UpdateMaxHealth();
-	UpdateMaxMana();
-	UpdateMaxSkillStamina();
-	UpdateMaxMovementStamina();
-	UpdateStrength();
-	UpdateConstitution();
-	UpdateDexterity();
-	UpdateIntelligence();
-	UpdateWisdom();
-	UpdateLuck();
+	UpdateAll();
 
 	// notify client
 	OnMaxHealthUpdate();
@@ -2586,8 +2677,10 @@ void AThirdPersonMPCharacter::EquipWeapon(TSubclassOf<AWeaponBase> NewWeaponClas
 
 void AThirdPersonMPCharacter::Multicast_PlayAttackMontage_Implementation()
 {
+	/*
 	if (!EquippedWeapon || !EquippedWeapon->AttackMontage) return;
-	
+	*/
+
 	UAnimInstance* Anim = GetMesh()->GetAnimInstance();
 	if (!Anim) return;
 
@@ -2603,32 +2696,26 @@ void AThirdPersonMPCharacter::Multicast_PlayAttackMontage_Implementation()
 	bIsAttacking = true;
 	bCanMove = false;
 
+	if (EquipmentComponent)
+	{
+		UItemBase* WeaponItem = EquipmentComponent->GetEquippedItem(EEquipmentSlot::Weapon);
+		if (WeaponItem && WeaponItem->WeaponAttackMontage)
+		{
+			PlayAnimMontage(WeaponItem->WeaponAttackMontage);
+			Anim->Montage_JumpToSection(SectionName, WeaponItem->WeaponAttackMontage);
+		}
+	}
+
+	/*
 	if (EquippedWeapon && EquippedWeapon->AttackMontage)
 	{
 		PlayAnimMontage(EquippedWeapon->AttackMontage);
 		GetMesh()->GetAnimInstance()->Montage_JumpToSection(SectionName);
 	}Anim->Montage_JumpToSection(SectionName, EquippedWeapon->AttackMontage);
+	*/
 
-		/*
-		if (IsLocallyControlled())
-		{
-			PlayAnimMontage(EquippedWeapon->AttackMontage);
-		}
-		
-			float AnimDuration = PlayAnimMontage(EquippedWeapon->AttackMontage);
-
-			// enable character movement
-			if (AnimDuration > 0.f)
-			{
-				FTimerHandle TimerHandle;
-				GetWorldTimerManager().SetTimer(TimerHandle, this, &AThirdPersonMPCharacter::ResetMovementRestrictions, AnimDuration, false);
-
-			}
-		*/
-
-
-		//UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticle, Hit.ImpactPoint);
-		//UGameplayStatics::PlaySoundAtLocation(this, SwordHitSound, GetActorLocation());
+	// UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticle, Hit.ImpactPoint);
+	// UGameplayStatics::PlaySoundAtLocation(this, SwordHitSound, GetActorLocation());
 
 }
 
@@ -2661,17 +2748,30 @@ void AThirdPersonMPCharacter::ResetMovementRestrictions()
 
 }
 
+bool AThirdPersonMPCharacter::HasWeaponType(EWeaponType RequiredType)
+{
+	if (!EquipmentComponent) return false;
+
+	return EquipmentComponent->GetEquippedWeaponType() == RequiredType;
+}
+
+
 // Combat System
 /////////////////////////////////////////////////////////////
 
-
-
-/*
-// Called every frame
-void AThirdPersonMPCharacter::Tick(float DeltaTime)
+void AThirdPersonMPCharacter::Recovery(float HPAmount, float MPAmount, float SPAmount)
 {
-	Super::Tick(DeltaTime);
+	CurrentHealth = FMath::Clamp(CurrentHealth + HPAmount, 0.f, MaxHealth);
+	CurrentMana = FMath::Clamp(CurrentMana + MPAmount, 0.f, MaxMana);
+	CurrentSkillStamina = FMath::Clamp(CurrentSkillStamina + SPAmount, 0.f, MaxSkillStamina);
 
+	UE_LOG(LogTemp, Warning, TEXT("Recovered -> HP: %.1f / %.1f | MP: %.1f / %.1f | SP: %.1f / %.1f"),
+		CurrentHealth, MaxHealth,
+		CurrentMana, MaxMana,
+		CurrentSkillStamina, MaxSkillStamina);
 }
 
-*/
+
+
+
+

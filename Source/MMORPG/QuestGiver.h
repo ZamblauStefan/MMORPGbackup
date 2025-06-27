@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Quest_UStruct.h"
+#include "Quest.h"
 #include "QuestGiver.generated.h"
 
 UCLASS()

@@ -6,6 +6,8 @@
 #include "InventoryPanel.h"
 #include "ThirdPersonMPCharacter.h"
 #include "InventoryComponent.h"
+#include "EquipmentPanel.h"
+#include "EquipmentComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -25,10 +27,7 @@ void UBasicHUD::ToggleCharacterDetails()
 
 		// switch between visible and collapsed
 		const bool bIsVisible = CharacterDetailsPanel->GetVisibility() == ESlateVisibility::Visible;
-		CharacterDetailsPanel->SetVisibility(
-			bIsVisible ? ESlateVisibility::Collapsed
-			: ESlateVisibility::Visible
-		);
+		CharacterDetailsPanel->SetVisibility(bIsVisible ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
 
 }
 
@@ -48,26 +47,25 @@ void UBasicHUD::ToggleInventory()
 
 	// switch between visible and collapsed
 	const bool bIsVisible = InventoryPanel->GetVisibility() == ESlateVisibility::Visible;
-	InventoryPanel->SetVisibility(
-		bIsVisible ? ESlateVisibility::Collapsed
-		: ESlateVisibility::Visible
-	);
+	InventoryPanel->SetVisibility(bIsVisible ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
 
-	/*
-	// Daca deschidem inventory, populam cu iteme
-	if (!bIsVisible)
+	// Equipment Panel
+	if (EquipmentPanel)
 	{
-		AThirdPersonMPCharacter* Character = Cast<AThirdPersonMPCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
-		if (Character && Character->GetInventoryComponent())
-		{
-			// Legam delegate-ul pentru a asculta modificarile de inventory
-			InventoryPanel->BindToInventory(Character->GetInventoryComponent());
+		const bool bEqIsVisible = EquipmentPanel->GetVisibility() == ESlateVisibility::Visible;
+		EquipmentPanel->SetVisibility(bEqIsVisible ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
 
-			// Populam grila de iteme
-			InventoryPanel->PopulateInventory();
+		if (bEqIsVisible == false)
+		{
+			AThirdPersonMPCharacter* Player = Cast<AThirdPersonMPCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
+			if (Player && Player->GetEquipmentComponent())
+			{
+				EquipmentPanel->UpdatePanel(Player->GetEquipmentComponent());
+			}
 		}
 	}
-	*/
+
+
 }
 
 void UBasicHUD::BindInventoryToUI(UInventoryComponent* InventoryComponent)
@@ -79,35 +77,37 @@ void UBasicHUD::BindInventoryToUI(UInventoryComponent* InventoryComponent)
 	}
 }
 
-
-/*
-void UBasicHUD::NativeConstruct()
+void UBasicHUD::ToggleQuestLog()
 {
-	Super::NativeConstruct();
+	UE_LOG(LogTemp, Warning, TEXT("Apel: ABasicHUD::ToggleQuests()"));
 
-	UE_LOG(LogTemp, Warning, TEXT("[BasicHUD] NativeConstruct apelat!"));
-
-	APlayerController* PC = GetOwningPlayer();
-	if (PC)
+	if (!QuestWidget && QuestWidgetClass)
 	{
-		AThirdPersonMPCharacter* Character = Cast<AThirdPersonMPCharacter>(PC->GetPawn());
-		if (Character && Character->GetInventoryComponent())
+		QuestWidget = CreateWidget<UUserWidget>(GetWorld(), QuestWidgetClass);
+		if (QuestWidget)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("[BasicHUD] InventoryPanel detectat în NativeConstruct. Legăm delegate-ul."));
+			QuestWidget->AddToViewport();
+			UE_LOG(LogTemp, Warning, TEXT("[BasicHUD]Widget-ul a fost adaugat in Viewport"));
+		}
+	}
+	else if (QuestWidget)
+	{
+		const bool bVisible = QuestWidget->IsVisible();
+		QuestWidget->SetVisibility(bVisible ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
 
-			if (InventoryPanel)
+		if (!bVisible)
+		{
+			if (UFunction* RefreshFunc = QuestWidget->FindFunction(FName("Refresh")))
 			{
-				InventoryPanel->BindToInventory(Character->GetInventoryComponent());
+				QuestWidget->ProcessEvent(RefreshFunc, nullptr);
+				UE_LOG(LogTemp, Warning, TEXT("[BasicHUD]Apel Refresh() dupa toggle"));
 			}
 		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("[BasicHUD] Character sau InventoryComp este NULL!"));
-		}
+
 	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("[BasicHUD] PlayerController este NULL!"));
-	}
+
+
+
 }
-*/
+
+

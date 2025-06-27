@@ -31,8 +31,13 @@ private:
 public:
     UFUNCTION()
     void ToggleCharacterDetails();
-
     UFUNCTION()
     void ToggleInventory();
+    UFUNCTION()
+    void ToggleQuests();
+
+    UFUNCTION(BlueprintCallable)
+    UBasicHUD* GetBasicHUDWidget() const { return BasicHUDWidget; }
+
 
 };
