@@ -12,7 +12,7 @@
 #include "BuffTypes.h"
 #include "BasicHUD.h"
 #include "InteractionInterface.h"
-#include "ItemDataStructs.h"
+//#include "ItemDataStructs.h"
 #include "ThirdPersonMPCharacter.generated.h"
 
 
@@ -29,6 +29,8 @@ class AItemPickup;
 class UInventoryPanel;
 class AWeaponBase;
 class ABaseNPC;
+class UItemBase;
+
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
@@ -178,8 +180,10 @@ public:
 	UPROPERTY()
 	AWeaponBase* EquippedWeapon;
 
+	/*
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat")
 	TSubclassOf<AWeaponBase> WeaponClass;
+	*/
 
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void MeleeAttack();
@@ -194,13 +198,13 @@ public:
 
 
 	UFUNCTION(Server, Reliable)
-	void ServerMeleeAttack();
+	void ServerMeleeAttack(FName ItemID);
 
 	UFUNCTION(Category = "Combat")
 	void MeleeAttack_Internal();
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_PlayAttackMontage();
+	void Multicast_PlayAttackMontage(UAnimMontage* MontageToPlay, FName SectionName);
 
 	// Cooldown
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
@@ -979,6 +983,8 @@ public:
 
 	void Recovery(float HPAmount, float MPAmount, float SPAmount);
 
+	void EquipWeaponFromItem(UItemBase* WeaponItem);
+
 	UFUNCTION(BlueprintCallable, Category = "Progression")
 	void GainEXP(int32 Amount);
 	UFUNCTION()
@@ -995,6 +1001,21 @@ public:
 
 	// Functie de expunere a componentei 
 	FORCEINLINE ULifeSkillsComponent* GetLifeSkillsComponent() const { return LifeSkillsComp; }
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UStaticMeshComponent* WeaponMesh;
+	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeaponMesh)
+	UStaticMesh* ReplicatedWeaponMesh;
+	UFUNCTION()
+	void OnRep_EquippedWeaponMesh();
+	UFUNCTION(Server, Reliable)
+	void ServerEquipWeaponFromItem(FName ItemID);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastEquipWeaponFromItem(UItemBase* WeaponItem);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Items")
+	UDataTable* WeaponDataTable;
 
 protected:
 
@@ -1031,7 +1052,6 @@ protected:
 
 	/* A timer handle used for providing the fire rate delay in-between spawns. */
 	FTimerHandle FiringTimer;
-
 
 
 

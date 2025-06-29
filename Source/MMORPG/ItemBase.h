@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "ItemDataStructs.h"
+#include "Animation/AnimMontage.h"  
 #include "ThirdPersonMPCharacter.h"
 #include "InventoryComponent.h"
 #include "ItemBase.generated.h"
@@ -53,8 +54,11 @@ public:
 	int32 MaxDurability;
 	UPROPERTY(Replicated, EditAnywhere, Category = "Item")
 	float Cooldown;
+
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
-	UAnimMontage* WeaponAttackMontage;
+	UAnimMontage* WeaponAttackMontage = nullptr;
+	
 
 
 	// delegate pentru use

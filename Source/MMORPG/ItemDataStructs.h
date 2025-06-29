@@ -4,6 +4,7 @@
 #include "Engine/DataTable.h"
 #include "GameplayTagContainer.h"
 #include "ItemPickup.h"
+#include "Animation/AnimMontage.h"
 #include "ItemDataStructs.generated.h"
 
 UENUM()
@@ -177,8 +178,11 @@ struct FItemData : public FTableRowBase
 	FItemNumericData NumericData;
 	UPROPERTY(EditAnywhere, Category = "Item Data")
 	FItemAssetData AssetData;
+
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UAnimMontage* WeaponAttackMontage;
+	
 
 
 	// requirements

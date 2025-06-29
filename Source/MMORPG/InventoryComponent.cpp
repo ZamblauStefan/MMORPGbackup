@@ -36,6 +36,8 @@ void UInventoryComponent::Client_AddItem_Implementation(const FItemData& ItemRow
 	NewItem->MaxDurability = ItemRow.MaxDurability;
 	NewItem->Cooldown = ItemRow.Cooldown;
 	NewItem->OnUse = ItemRow.OnUse;
+	NewItem->WeaponAttackMontage = ItemRow.WeaponAttackMontage;
+	NewItem->WeaponType = ItemRow.WeaponType;
 
 	// verificare is Stackable
 

@@ -76,6 +76,10 @@ class MMORPG_API UEquipmentComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
+private:
+    void EquipItem_Internal(EEquipmentSlot Slot, UItemBase* Item);
+
+
 public:
 	UEquipmentComponent();
 	~UEquipmentComponent();
@@ -94,8 +98,11 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
     class UItemBase* EquippedBoots;
-    UPROPERTY()
+    UPROPERTY(ReplicatedUsing = OnRep_StatsTotals)
     FEquipmentStatTotals StatsTotals;
+
+    UFUNCTION()
+    void OnRep_StatsTotals();
 
     UPROPERTY()
     AStaticMeshActor* EquippedWeaponActor;
@@ -113,5 +120,16 @@ public:
     UItemBase* GetEquippedItem(EEquipmentSlot Slot) const;
 
     void RecalculateEquipmentStats();
+
+    UFUNCTION(Client, Reliable)
+    void ClientRecalculateEquipmentStats();
+
+    UFUNCTION(Server, Reliable)
+    void ServerRequestRecalculateEquipmentStats();
+
+    UFUNCTION(Server, Reliable)
+    void ServerEquipItem(EEquipmentSlot Slot, FName ItemID);
+
+
 };
 

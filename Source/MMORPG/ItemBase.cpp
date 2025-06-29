@@ -46,6 +46,7 @@ UItemBase* UItemBase::CreateItemCopy()
 	ItemCopy->MaxDurability = this->MaxDurability;
 	ItemCopy->Cooldown = this->Cooldown;
 	ItemCopy->OnUse = this->OnUse;
+	ItemCopy->WeaponAttackMontage = this->WeaponAttackMontage;
 
 
 	return ItemCopy;

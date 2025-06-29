@@ -28,7 +28,11 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	
+public:
+	void SetMesh(UStaticMesh* NewMesh);
+
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* MeshComp;
 	
 };
 

@@ -64,7 +64,8 @@ void AItemPickup::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActo
 					NewItem->MaxDurability = Row->MaxDurability;
 					NewItem->Cooldown = Row->Cooldown;
 					NewItem->OnUse = Row->OnUse;
-
+					NewItem->WeaponAttackMontage = Row->WeaponAttackMontage;
+					NewItem->WeaponType = Row->WeaponType;
 
 					if (Row)
 					{

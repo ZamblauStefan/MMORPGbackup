@@ -7,6 +7,7 @@
 #include <Kismet/GameplayStatics.h>
 #include "MyPlayerController.h"
 #include "Engine/StaticMeshActor.h"
+#include "GameFramework/Actor.h"
 
 UEquipmentComponent::UEquipmentComponent()
 {
@@ -25,42 +26,42 @@ UEquipmentComponent::~UEquipmentComponent()
 }
 
 
-void UEquipmentComponent::EquipItem(EEquipmentSlot Slot, UItemBase* Item)
+void UEquipmentComponent::EquipItem_Internal(EEquipmentSlot Slot, UItemBase* Item)
 {
+
+    if (Item)
+    {
+        if (Item->WeaponAttackMontage)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[EquipItem] WeaponAttackMontage: %s"), *Item->WeaponAttackMontage->GetName());
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("[EquipItem] WeaponAttackMontage ESTE NULL la echipare pentru item: %s"), *Item->ItemID.ToString());
+        }
+    }
+
     switch (Slot)
     {
     case EEquipmentSlot::Weapon:
         EquippedWeapon = Item;
 
-        // echipare weapon fizic pe caracter
-        if (Item && Item->AssetData.Mesh)
+        if (AThirdPersonMPCharacter* OwnerChar = Cast<AThirdPersonMPCharacter>(GetOwner()))
         {
-            AThirdPersonMPCharacter* OwnerChar = Cast<AThirdPersonMPCharacter>(GetOwner());
-            if (OwnerChar)
+            if (OwnerChar->HasAuthority())
             {
-                USkeletalMeshComponent* MeshComp = OwnerChar->GetMesh();
-
-                // Daca exista deja o arma echipata, o distrugem
-                if (EquippedWeaponActor)
-                {
-                    EquippedWeaponActor->Destroy();
-                    EquippedWeaponActor = nullptr;
-                }
-
-                // Spawnam noua arma
-                FActorSpawnParameters SpawnParams;
-                SpawnParams.Owner = OwnerChar;
-
-                AStaticMeshActor* NewWeapon = OwnerChar->GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), SpawnParams);
-                if (NewWeapon)
-                {
-                    NewWeapon->GetStaticMeshComponent()->SetStaticMesh(Item->AssetData.Mesh);
-                    NewWeapon->AttachToComponent(MeshComp, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("ik_hand_r"));
-                    EquippedWeaponActor = NewWeapon;
-                }
+                UE_LOG(LogTemp, Warning, TEXT("[EquipItem] HasAuthority TRUE"));
+                OwnerChar->EquipWeaponFromItem(Item);
+                OwnerChar->MulticastEquipWeaponFromItem(Item->ItemID);
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning, TEXT("[EquipItem] HasAuthority FALSE - calling ServerEquipWeaponFromItem"));
+                OwnerChar->ServerEquipWeaponFromItem(Item->ItemID);
             }
         }
 
+  
 
         break;
     case EEquipmentSlot::Helmet:
@@ -97,11 +98,24 @@ void UEquipmentComponent::EquipItem(EEquipmentSlot Slot, UItemBase* Item)
         }
     }
 
-    // echipare weapon fizic pe caracter
 
-
-
+    UE_LOG(LogTemp, Warning, TEXT("[EquipItem] Inainte de RecalculateEquipmentStats pe server sau client"));
     RecalculateEquipmentStats();
+    UE_LOG(LogTemp, Warning, TEXT("[EquipItem] Dupa RecalculateEquipmentStats"));
+
+    if (!GetOwner()->HasAuthority())
+    {
+        // daca e deja pe client, se ruleaza local
+        UE_LOG(LogTemp, Warning, TEXT("[EquipItem] Nu am authority, rulez local RecalculateEquipmentStats()"));
+        ServerRequestRecalculateEquipmentStats();
+    }
+    else
+    {
+        // daca e pe server, se trimite RPC doar catre clientul owner
+        UE_LOG(LogTemp, Warning, TEXT("[EquipItem] Am authority, trimit ClientRecalculateEquipmentStats()"));
+        RecalculateEquipmentStats();
+    }
+
 }
 
 void UEquipmentComponent::UnequipItem(EEquipmentSlot Slot)
@@ -142,7 +156,20 @@ void UEquipmentComponent::UnequipItem(EEquipmentSlot Slot)
     }
 
     UE_LOG(LogTemp, Warning, TEXT("Unequipped item from slot %s"), *UEnum::GetValueAsString(Slot));
+
+
     RecalculateEquipmentStats();
+
+    if (!GetOwner()->HasAuthority())
+    {
+        // daca e deja pe client, se ruleaza local
+        RecalculateEquipmentStats();
+    }
+    else
+    {
+        // daca e pe server, se trimite RPC doar catre clientul owner
+        ClientRecalculateEquipmentStats();
+    }
 }
 
 UItemBase* UEquipmentComponent::GetEquippedItem(EEquipmentSlot Slot) const
@@ -177,6 +204,8 @@ EWeaponType UEquipmentComponent::GetEquippedWeaponType() const
 
 void UEquipmentComponent::RecalculateEquipmentStats()
 {
+    UE_LOG(LogTemp, Warning, TEXT("[RecalculateEquipmentStats] Called on %s"), *GetOwner()->GetName());
+
     StatsTotals = FEquipmentStatTotals();
 
     TArray<UItemBase*> Items = {
@@ -190,6 +219,8 @@ void UEquipmentComponent::RecalculateEquipmentStats()
     for (UItemBase* Item : Items)
     {
         if (!Item) continue;
+
+        UE_LOG(LogTemp, Warning, TEXT("[RecalculateEquipmentStats] SERVER EquippedItem=%s"), *Item->ItemID.ToString());
 
         StatsTotals.BonusMaxHealth += Item->ItemStatistics.MaxHealth;
         StatsTotals.BonusHealthRegen += Item->ItemStatistics.HealthRegen;
@@ -213,12 +244,108 @@ void UEquipmentComponent::RecalculateEquipmentStats()
         StatsTotals.BonusLuck += Item->ItemStatistics.Luck;   
     }
 
+    UE_LOG(LogTemp, Warning, TEXT("[RecalculateEquipmentStats] TEST BonusPhysicalAttack=%f"), StatsTotals.BonusPhysicalAttack);
+
+    if (GetOwner()->HasAuthority())
+    {
+        StatsTotals.BonusPhysicalAttack += 1.0f; // FORCE CHANGE for replication test
+        GetOwner()->ForceNetUpdate();
+    }
+
     if (AThirdPersonMPCharacter* Char = Cast<AThirdPersonMPCharacter>(GetOwner()))
     {
         Char->UpdateAll();
     }
 
+    if (GetOwner()->HasAuthority())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[RecalculateEquipmentStats] SERVER FINAL StatsTotals: PhysAttack=%f PhysDefense=%f"),
+            StatsTotals.BonusPhysicalAttack, StatsTotals.BonusPhysicalDefense);
+
+        GetOwner()->ForceNetUpdate();
+    }
+
+
 }
 
+
+void UEquipmentComponent::ClientRecalculateEquipmentStats_Implementation()
+{
+    UE_LOG(LogTemp, Warning, TEXT("[ClientRecalculateEquipmentStats] Called on client %s"), *GetOwner()->GetName());
+    RecalculateEquipmentStats();
+}
+
+
+void UEquipmentComponent::OnRep_StatsTotals()
+{
+    UE_LOG(LogTemp, Warning, TEXT("[OnRep_StatsTotals] Called on %s"), *GetOwner()->GetName());
+    RecalculateEquipmentStats();
+}
+
+
+void UEquipmentComponent::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(UEquipmentComponent, StatsTotals);
+}
+
+
+void UEquipmentComponent::ServerRequestRecalculateEquipmentStats_Implementation()
+{
+    UE_LOG(LogTemp, Warning, TEXT("[ServerRequestRecalculateEquipmentStats] called on server"));
+
+    RecalculateEquipmentStats(); // server calculeaza statusurile
+
+  
+}
+
+
+void UEquipmentComponent::ServerEquipItem_Implementation(EEquipmentSlot Slot, FName ItemID)
+{
+    AThirdPersonMPCharacter* OwnerChar = Cast<AThirdPersonMPCharacter>(GetOwner());
+    if (!OwnerChar || !OwnerChar->WeaponDataTable)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[ServerEquipItem] Nu am OwnerChar sau ItemDataTable"));
+        return;
+    }
+
+
+    // cautare in DataTable
+    const FItemData* DataTableRow = OwnerChar->WeaponDataTable->FindRow<FItemData>(ItemID, TEXT(""));
+    if (!DataTableRow)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[ServerEquipItem] ItemID %s not found in DataTable!"), *ItemID.ToString());
+        return;
+    }
+
+    // creare un nou UItemBase pe server
+    UItemBase* NewItem = NewObject<UItemBase>(UItemBase::StaticClass());
+    NewItem->ItemID = DataTableRow->ItemID;
+    NewItem->WeaponAttackMontage = DataTableRow->WeaponAttackMontage;
+    NewItem->AssetData = DataTableRow->AssetData;
+    NewItem->NumericData = DataTableRow->NumericData;
+    NewItem->ItemType = DataTableRow->ItemType;
+    NewItem->WeaponType = DataTableRow->WeaponType;
+    NewItem->ItemStatistics = DataTableRow->ItemStatistics;
+    NewItem->ItemQuality = DataTableRow->ItemQuality;
+    NewItem->TextData = DataTableRow->TextData;
+    NewItem->AssetData = DataTableRow->AssetData;
+    NewItem->Cooldown = DataTableRow->Cooldown;
+ 
+    EquipItem_Internal(Slot, NewItem);
+}
+
+
+void UEquipmentComponent::EquipItem(EEquipmentSlot Slot, UItemBase* Item)
+{
+    if (!GetOwner()->HasAuthority())
+    {
+        ServerEquipItem(Slot, Item->ItemID);
+        return;
+    }
+
+    EquipItem_Internal(Slot, Item);
+}
 
 

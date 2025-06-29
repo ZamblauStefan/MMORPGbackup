@@ -13,7 +13,18 @@ AWeaponBase::AWeaponBase()
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	SetRootComponent(WeaponMesh);
 
+	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
+	RootComponent = MeshComp;
 
+	if (WeaponMesh)
+	{
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
+	WeaponMesh->SetSimulatePhysics(false);
+	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	WeaponMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+	WeaponMesh->SetGenerateOverlapEvents(false);
 }
 
 // Called when the game starts or when spawned
@@ -30,3 +41,10 @@ void AWeaponBase::Tick(float DeltaTime)
 
 }
 
+void AWeaponBase::SetMesh(UStaticMesh* NewMesh)
+{
+	if (NewMesh && MeshComp)
+	{
+		MeshComp->SetStaticMesh(NewMesh);
+	}
+}

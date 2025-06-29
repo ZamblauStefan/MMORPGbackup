@@ -129,6 +129,14 @@ AThirdPersonMPCharacter::AThirdPersonMPCharacter()
 	// componenta de questuri
 	QuestManager = CreateDefaultSubobject<UQuestManager>(TEXT("QuestManager"));
 
+	// weapon
+	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
+	WeaponMesh->SetupAttachment(GetMesh(), TEXT("wep_r"));
+	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	WeaponMesh->SetGenerateOverlapEvents(false);
+	WeaponMesh->SetVisibility(false);
+
+
 }
 
 	//////////////////////////////////////////////////////////////////
@@ -484,6 +492,22 @@ void AThirdPersonMPCharacter::Server_PickupItem_Implementation(AItemPickup* Item
 			NewItem->ItemID = ItemPickup->ItemID;
 			NewItem->Quantity = ItemPickup->Quantity;
 
+			const FItemData* DataTableRow = ItemPickup->ItemDataTable->FindRow<FItemData>(ItemPickup->ItemRowName, TEXT(""));
+			if (DataTableRow)
+			{
+				NewItem->WeaponAttackMontage = DataTableRow->WeaponAttackMontage;
+				NewItem->WeaponType = DataTableRow->WeaponType;
+				UE_LOG(LogTemp, Warning, TEXT("[TPC->Pickup] WeaponAttackMontage setat: %s"),
+					NewItem->WeaponAttackMontage ? *NewItem->WeaponAttackMontage->GetName() : TEXT("nullptr"));
+
+
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("[TPC->Pickup] Nu am gasit item-ul in DataTable pentru %s"), *ItemPickup->ItemID.ToString());
+			}
+
+
 			// Incercam sa adaugam in inventory
 			bool bAdded = InventoryComp->AddItem(NewItem);
 
@@ -595,6 +619,7 @@ void AThirdPersonMPCharacter::GetLifetimeReplicatedProps(TArray <FLifetimeProper
 
 	// replicated for combat
 	DOREPLIFETIME(AThirdPersonMPCharacter, CurrentComboSection);
+	DOREPLIFETIME(AThirdPersonMPCharacter, ReplicatedWeaponMesh);
 
 
 
@@ -2454,8 +2479,6 @@ void AThirdPersonMPCharacter::BeginPlay()
 	}
 
 
-	EquipWeapon(WeaponClass);
-
 }
 
 ////////////////////
@@ -2490,9 +2513,15 @@ void AThirdPersonMPCharacter::ToggleMouseVisibility()
 
 void AThirdPersonMPCharacter::MeleeAttack()
 {
-
-	if (!EquippedWeapon || !EquippedWeapon->AttackMontage) return;
+	
 	if (!bCanAttack) return;
+
+	UItemBase* WeaponItem = EquipmentComponent->GetEquippedItem(EEquipmentSlot::Weapon);
+	if (!WeaponItem || !WeaponItem->WeaponAttackMontage)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[Attack] Nu ai nicio arma echipata sau  WeaponItem->WeaponAttackMontage ESTE NULL!"));
+		return;
+	}
 	
 	if(bCanDoCombo)
 	{
@@ -2512,47 +2541,29 @@ void AThirdPersonMPCharacter::MeleeAttack()
 
 	bCanDoCombo = false;
 
+	/*
 	if (!HasAuthority())
 	{
 		ServerMeleeAttack();
 		return;
 	}
+	*/
 
-	ServerMeleeAttack();
-	
+	ServerMeleeAttack(WeaponItem->ItemID);
 
-	/*
-	* 
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (!AnimInstance) return;
-
-	// daca characterul este intr-o animatie de atack, se pregateste urmatoarea
-	if (AnimInstance->Montage_IsPlaying(EquippedWeapon->AttackMontage))
+	FName SectionName;
+	switch (CurrentComboIndex)
 	{
-		// character este in animatie
-		if (bCanDoCombo)
-		{
-			CurrentComboIndex++;
-
-			FName NextSection = (CurrentComboIndex == 1) ? "Attack2" :
-								(CurrentComboIndex == 2) ? "Attack3" :
-								FName("Attack1"); // fallback
-			AnimInstance->Montage_JumpToSection(NextSection, EquippedWeapon->AttackMontage);
-			bCanDoCombo = false;
-			bComboInputBuffered = true;
-			// aplicare damage
-			MeleeAttack_Internal();
-		}
-		return;
+	case 0: SectionName = "Attack1"; break;
+	case 1: SectionName = "Attack2"; break;
+	case 2: SectionName = "Attack3"; break;
+	default: SectionName = "Attack1"; break;
 	}
 
-	CurrentComboIndex = 0;
-	bCanAttack = false;
-	bCanDoCombo = false;
-	// se activeaza atacul efectiv pe server
-	ServerMeleeAttack();
-	
-	*/
+	UE_LOG(LogTemp, Warning, TEXT("[Attack] MeleeAttack() called"));
+	Multicast_PlayAttackMontage(WeaponItem->WeaponAttackMontage, SectionName);
+
+
 }
 void AThirdPersonMPCharacter::PlayAttackSection(int32 Index)
 {
@@ -2601,19 +2612,42 @@ void AThirdPersonMPCharacter::ResetComboSection()
 
 }
 
-void AThirdPersonMPCharacter::ServerMeleeAttack_Implementation()
+void AThirdPersonMPCharacter::ServerMeleeAttack_Implementation(FName ItemID)
 {
-	// if (!HasAuthority()) return;
+	const FItemData* DataTableRow = WeaponDataTable->FindRow<FItemData>(ItemID, TEXT(""));
+	if (!DataTableRow)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[ServerMeleeAttack] ItemID %s not found in DataTable!"), *ItemID.ToString());
+		return;
+	}
 
-	MeleeAttack_Internal(); // logica de damage
-	Multicast_PlayAttackMontage(); // animatie + restrictie movement
+	UItemBase* WeaponItem = NewObject<UItemBase>(UItemBase::StaticClass());
+	WeaponItem->ItemID = DataTableRow->ItemID;
+	WeaponItem->WeaponAttackMontage = DataTableRow->WeaponAttackMontage;
+
+	//UItemBase* WeaponItem = EquipmentComponent->GetEquippedItem(EEquipmentSlot::Weapon);
+	//if (!WeaponItem || !WeaponItem->WeaponAttackMontage) return;
+
+	FName SectionName;
+	switch (CurrentComboIndex)
+	{
+	case 0: SectionName = "Attack1"; break;
+	case 1: SectionName = "Attack2"; break;
+	case 2: SectionName = "Attack3"; break;
+	default: SectionName = "Attack1"; break;
+	}
+
+	MeleeAttack_Internal(); // damage logic
+	Multicast_PlayAttackMontage(WeaponItem->WeaponAttackMontage, SectionName);
+
+	//MeleeAttack_Internal(); // logica de damage
+	//Multicast_PlayAttackMontage(); // animatie + restrictie movement
 
 }
 
 void AThirdPersonMPCharacter::MeleeAttack_Internal()
 {
 
-		if (!EquippedWeapon || !EquippedWeapon->AttackMontage) return;
 		if (CurrentComboSection.IsNone()) return;
 
 		// daca Character nu este in animatie se porneste prima animatie
@@ -2655,7 +2689,12 @@ float AThirdPersonMPCharacter::TakeDamage(float DamageTaken, struct FDamageEvent
 
 void AThirdPersonMPCharacter::EquipWeapon(TSubclassOf<AWeaponBase> NewWeaponClass)
 {
-	if (!NewWeaponClass) return;
+	if (!NewWeaponClass)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[EquipWeapon] NewWeaponClass este NULL"));
+		return;
+	}
+
 
 	if (EquippedWeapon)
 	{
@@ -2671,18 +2710,22 @@ void AThirdPersonMPCharacter::EquipWeapon(TSubclassOf<AWeaponBase> NewWeaponClas
 	if (EquippedWeapon)
 	{
 		EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("wep_r"));
+		UE_LOG(LogTemp, Warning, TEXT("[EquipWeapon] Weapon echipata: %s"), *EquippedWeapon->GetName());
+
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[EquipWeapon] SpawnActor a returnat NULL"));
 	}
 }
 
 
-void AThirdPersonMPCharacter::Multicast_PlayAttackMontage_Implementation()
+void AThirdPersonMPCharacter::Multicast_PlayAttackMontage_Implementation(UAnimMontage* MontageToPlay, FName SectionNameToPlay)
 {
-	/*
-	if (!EquippedWeapon || !EquippedWeapon->AttackMontage) return;
-	*/
 
 	UAnimInstance* Anim = GetMesh()->GetAnimInstance();
-	if (!Anim) return;
+	if (!Anim || !MontageToPlay) return;
+
 
 	FName SectionName;
 	switch (CurrentComboIndex)
@@ -2696,15 +2739,14 @@ void AThirdPersonMPCharacter::Multicast_PlayAttackMontage_Implementation()
 	bIsAttacking = true;
 	bCanMove = false;
 
-	if (EquipmentComponent)
-	{
-		UItemBase* WeaponItem = EquipmentComponent->GetEquippedItem(EEquipmentSlot::Weapon);
-		if (WeaponItem && WeaponItem->WeaponAttackMontage)
-		{
-			PlayAnimMontage(WeaponItem->WeaponAttackMontage);
-			Anim->Montage_JumpToSection(SectionName, WeaponItem->WeaponAttackMontage);
-		}
-	}
+	UE_LOG(LogTemp, Warning, TEXT("[Attack] Playing montage: %s"), *MontageToPlay->GetName());
+	PlayAnimMontage(MontageToPlay);
+	Anim->Montage_JumpToSection(SectionName, MontageToPlay);
+
+	//UE_LOG(LogTemp, Warning, TEXT("[Attack] Playing montage: %s"), *WeaponItem->WeaponAttackMontage->GetName());
+	//PlayAnimMontage(WeaponItem->WeaponAttackMontage);
+	//Anim->Montage_JumpToSection(SectionName, WeaponItem->WeaponAttackMontage);
+
 
 	/*
 	if (EquippedWeapon && EquippedWeapon->AttackMontage)
@@ -2751,7 +2793,6 @@ void AThirdPersonMPCharacter::ResetMovementRestrictions()
 bool AThirdPersonMPCharacter::HasWeaponType(EWeaponType RequiredType)
 {
 	if (!EquipmentComponent) return false;
-
 	return EquipmentComponent->GetEquippedWeaponType() == RequiredType;
 }
 
@@ -2772,6 +2813,73 @@ void AThirdPersonMPCharacter::Recovery(float HPAmount, float MPAmount, float SPA
 }
 
 
+void AThirdPersonMPCharacter::ServerEquipWeaponFromItem_Implementation(FName ItemID)
+{
+
+	UE_LOG(LogTemp, Warning, TEXT("[ServerEquipWeaponFromItem] called with ItemID: %s"), *ItemID.ToString());
+
+	// creare item din DataTable
+	const FItemData* DataTableRow = WeaponDataTable->FindRow<FItemData>(ItemID, TEXT(""));
+	if (!DataTableRow)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ItemID %s not found in DataTable!"), *ItemID.ToString());
+		return;
+	}
+
+	UItemBase* NewItem = NewObject<UItemBase>(UItemBase::StaticClass());
+	NewItem->ItemID = DataTableRow->ItemID;
+	NewItem->WeaponAttackMontage = DataTableRow->WeaponAttackMontage;
+	NewItem->AssetData.Mesh = DataTableRow->AssetData.Mesh;
+
+	EquipWeaponFromItem(NewItem);
+	MulticastEquipWeaponFromItem(NewItem);
+}
+
+void AThirdPersonMPCharacter::MulticastEquipWeaponFromItem_Implementation(UItemBase* WeaponItem)
+{
+	UE_LOG(LogTemp, Warning, TEXT("[MulticastEquipWeaponFromItem] called on %s"), *GetName());
+	EquipWeaponFromItem(WeaponItem);
+}
+
+
+void AThirdPersonMPCharacter::EquipWeaponFromItem(UItemBase* WeaponItem)
+{
+	UE_LOG(LogTemp, Warning, TEXT("[EquipWeaponFromItem] called on %s"), *GetName());
+	
+	if (!WeaponItem)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[EquipWeaponFromItem] WeaponItem este NULL!"));
+		return;
+	}
+
+	if (WeaponItem->AssetData.Mesh)
+	{
+		WeaponMesh->SetStaticMesh(WeaponItem->AssetData.Mesh);
+		WeaponMesh->SetVisibility(true);
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		WeaponMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("wep_r"));
+		WeaponMesh->SetGenerateOverlapEvents(false);
+
+		UE_LOG(LogTemp, Warning, TEXT("[EquipWeaponFromItem] Weapon echipata vizual: %s"), *WeaponItem->ItemID.ToString());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[EquipWeaponFromItem] WeaponItem->AssetData.Mesh ESTE NULL!"));
+	}
+	
+	ReplicatedWeaponMesh = WeaponItem->AssetData.Mesh;
+	OnRep_EquippedWeaponMesh();
+}
+
+void AThirdPersonMPCharacter::OnRep_EquippedWeaponMesh()
+{
+	if (WeaponMesh && ReplicatedWeaponMesh)
+	{
+		WeaponMesh->SetStaticMesh(ReplicatedWeaponMesh);
+		WeaponMesh->SetVisibility(true);
+		WeaponMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("wep_r"));
+	}
+}
 
 
 
